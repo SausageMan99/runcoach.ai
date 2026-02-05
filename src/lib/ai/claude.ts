@@ -16,15 +16,55 @@ export interface GenerateProgramInput {
 }
 
 export async function generateProgram(input: GenerateProgramInput): Promise<ProgramData> {
-    // Calculate weeks available (max 12 for complete generation)
-    let weeksAvailable = 12 // Default
+    // Calculate weeks available based on level, goal, and target date
+    let weeksAvailable: number
+
     if (input.targetDate) {
+        // If target date is specified, calculate weeks and cap based on goal
         const today = new Date()
         const target = new Date(input.targetDate)
         const diffTime = target.getTime() - today.getTime()
         const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7))
-        weeksAvailable = Math.max(4, Math.min(12, diffWeeks)) // Between 4 and 12 weeks max
+
+        // Set min/max based on goal
+        let minWeeks = 8, maxWeeks = 16
+        const goalLower = input.goal.toLowerCase()
+        if (goalLower.includes('5k')) {
+            minWeeks = 6; maxWeeks = 12
+        } else if (goalLower.includes('10k')) {
+            minWeeks = 8; maxWeeks = 14
+        } else if (goalLower.includes('semi')) {
+            minWeeks = 12; maxWeeks = 18
+        } else if (goalLower.includes('marathon')) {
+            minWeeks = 14; maxWeeks = 20
+        }
+
+        weeksAvailable = Math.max(minWeeks, Math.min(diffWeeks, maxWeeks))
+    } else {
+        // No target date: smart duration based on level AND goal
+        const goalLower = input.goal.toLowerCase()
+
+        if (input.level === 'débutant') {
+            if (goalLower.includes('5k')) weeksAvailable = 8
+            else if (goalLower.includes('10k')) weeksAvailable = 10
+            else if (goalLower.includes('semi')) weeksAvailable = 14
+            else weeksAvailable = 12
+        } else if (input.level === 'intermédiaire') {
+            if (goalLower.includes('5k')) weeksAvailable = 6
+            else if (goalLower.includes('10k')) weeksAvailable = 10
+            else if (goalLower.includes('semi')) weeksAvailable = 14
+            else if (goalLower.includes('marathon')) weeksAvailable = 18
+            else weeksAvailable = 12
+        } else { // avancé
+            if (goalLower.includes('10k')) weeksAvailable = 8
+            else if (goalLower.includes('semi')) weeksAvailable = 12
+            else if (goalLower.includes('marathon')) weeksAvailable = 18
+            else weeksAvailable = 12
+        }
     }
+
+    // Max cap: 20 weeks (5 months) for engagement
+    weeksAvailable = Math.min(weeksAvailable, 20)
 
     const prompt = programGenerationPrompt({
         ...input,
@@ -64,6 +104,18 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
         // Validate basic structure
         if (!programData.weeks || !Array.isArray(programData.weeks)) {
             throw new Error('Invalid program structure: missing weeks array')
+        }
+
+        // Validate sessions per week count
+        for (const week of programData.weeks) {
+            const trainingSessions = week.sessions.filter(s => !s.rest_day).length
+            if (trainingSessions !== input.sessionsPerWeek) {
+                console.warn(
+                    `Week ${week.week_number} has ${trainingSessions} sessions instead of ${input.sessionsPerWeek}. Adjusting user_profile value.`
+                )
+                // Update the user_profile to match what was actually generated
+                programData.user_profile.sessions_per_week = trainingSessions
+            }
         }
 
         return programData
