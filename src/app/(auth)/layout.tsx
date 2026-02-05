@@ -28,7 +28,7 @@ export default function AuthLayout({
 
             {/* Footer */}
             <footer className="p-6 border-t-2 border-foreground text-center text-sm text-foreground/70">
-                © 2024 RunCoach.AI
+                © {new Date().getFullYear()} RunCoach.AI
             </footer>
         </div>
     )

@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
                 <div className="prose prose-zinc max-w-none space-y-6">
                     <p className="text-muted-foreground">
-                        Dernière mise à jour : Février 2024
+                        Dernière mise à jour : Février 2026
                     </p>
 
                     <section className="space-y-4">

@@ -188,7 +188,7 @@ export default function GeneratePage() {
 
             {/* Footer */}
             <footer className="p-4 text-center text-sm text-muted-foreground">
-                © 2024 RunCoach.AI
+                © {new Date().getFullYear()} RunCoach.AI
             </footer>
         </div>
     )

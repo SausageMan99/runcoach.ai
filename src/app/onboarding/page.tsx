@@ -186,8 +186,8 @@ export default function OnboardingPage() {
                                         <label
                                             key={option.value}
                                             className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.level === option.value
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-border hover:border-primary/50'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border hover:border-primary/50'
                                                 }`}
                                         >
                                             <input
@@ -228,8 +228,8 @@ export default function OnboardingPage() {
                                         <label
                                             key={option.value}
                                             className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.goalType === option.value
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-border hover:border-primary/50'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border hover:border-primary/50'
                                                 }`}
                                         >
                                             <input
@@ -316,8 +316,8 @@ export default function OnboardingPage() {
                                         <label
                                             key={option.value}
                                             className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.sessionsPerWeek === option.value
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-border hover:border-primary/50'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border hover:border-primary/50'
                                                 }`}
                                         >
                                             <input
@@ -440,7 +440,7 @@ export default function OnboardingPage() {
 
             {/* Footer */}
             <footer className="p-4 text-center text-sm text-muted-foreground">
-                © 2024 RunCoach.AI
+                © {new Date().getFullYear()} RunCoach.AI
             </footer>
         </div>
     )

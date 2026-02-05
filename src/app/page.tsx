@@ -323,7 +323,7 @@ export default function LandingPage() {
               <Link href="/privacy" className="hover:underline underline-offset-4">Confidentialité</Link>
             </nav>
             <p className="text-sm text-foreground/70">
-              © 2024 RunCoach.AI
+              © {new Date().getFullYear()} RunCoach.AI
             </p>
           </div>
         </div>
