@@ -44,30 +44,56 @@ export default function DashboardClient({ firstName, program, tracking: initialT
     const completedSessions = tracking.filter(t => t.completed).length
     const progressPercent = totalSessions > 0 ? (completedSessions / totalSessions) * 100 : 0
 
-    // Calculate streak
+    // Calculate streak - proper consecutive sessions with gap check
     const calculateStreak = () => {
-        if (!tracking.length) return 0
-        const sortedTracking = [...tracking]
-            .filter(t => t.completed)
+        const completedTracking = tracking.filter(t => t.completed && t.completed_at)
+        if (!completedTracking.length) return 0
+
+        const sortedTracking = [...completedTracking]
             .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())
 
-        if (!sortedTracking.length) return 0
-        return sortedTracking.length // Simplified streak calculation
+        let streak = 0
+        let currentDate = new Date(sortedTracking[0].completed_at!)
+
+        for (const session of sortedTracking) {
+            const sessionDate = new Date(session.completed_at!)
+            const daysDiff = Math.floor((currentDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
+
+            // If gap > 3 days, streak is broken
+            if (streak > 0 && daysDiff > 3) break
+
+            streak++
+            currentDate = sessionDate
+        }
+
+        return streak
     }
 
     const streak = calculateStreak()
 
-    // Find next session
+    // Find next session - shows next week if current week is complete
     const getNextSession = () => {
-        if (!currentWeekData) return null
+        if (!program || !currentWeekData) return null
         const completedInWeek = tracking.filter(t => t.week_number === currentWeek && t.completed)
         const completedDays = completedInWeek.map(t => t.session_day)
 
+        // Find next session in current week
         for (const session of currentWeekData.sessions) {
             if (!session.rest_day && !completedDays.includes(session.day)) {
-                return { ...session, weekNumber: currentWeek }
+                return { ...session, weekNumber: currentWeek, isNextWeek: false }
             }
         }
+
+        // Current week complete - check next week
+        if (currentWeek < program.program_data.weeks.length) {
+            const nextWeekData = program.program_data.weeks[currentWeek]
+            const firstSession = nextWeekData?.sessions.find(s => !s.rest_day)
+            if (firstSession) {
+                return { ...firstSession, weekNumber: currentWeek + 1, isNextWeek: true }
+            }
+        }
+
+        // Program complete
         return null
     }
 
@@ -226,7 +252,12 @@ export default function DashboardClient({ firstName, program, tracking: initialT
                                 <div>
                                     <p className="text-sm text-muted-foreground">Prochaine séance</p>
                                     <p className="text-lg font-bold truncate">
-                                        {nextSession ? `${nextSession.day} - ${nextSession.session_type}` : 'Tout fait ! 🎉'}
+                                        {nextSession
+                                            ? nextSession.isNextWeek
+                                                ? `S${nextSession.weekNumber}: ${nextSession.day} - ${nextSession.session_type}`
+                                                : `${nextSession.day} - ${nextSession.session_type}`
+                                            : 'Programme terminé ! 🏆'
+                                        }
                                     </p>
                                 </div>
                             </div>
