@@ -12,8 +12,8 @@ export default function AuthLayout({
                 <div className="blob-bg w-[400px] h-[400px] bg-primary/15 top-10 -left-20" />
                 <div className="blob-bg w-[300px] h-[300px] bg-accent-warm/15 bottom-20 right-10" style={{ animationDelay: '4s' }} />
                 <div className="relative z-10 max-w-md space-y-8">
-                    <Link href="/" className="font-serif text-3xl text-foreground">
-                        RunCoach
+                    <Link href="/">
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
                     </Link>
                     <blockquote className="space-y-4">
                         <p className="font-serif text-3xl leading-relaxed text-foreground/80">
@@ -30,8 +30,8 @@ export default function AuthLayout({
             <div className="flex-1 flex flex-col">
                 {/* Mobile header */}
                 <header className="lg:hidden p-6">
-                    <Link href="/" className="font-serif text-xl text-foreground">
-                        RunCoach
+                    <Link href="/">
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-7 w-auto" />
                     </Link>
                 </header>
 
@@ -42,7 +42,7 @@ export default function AuthLayout({
 
                 {/* Footer */}
                 <footer className="p-6 text-center text-sm text-muted-foreground">
-                    © {new Date().getFullYear()} RunCoach.AI
+                    © {new Date().getFullYear()} Joggeur
                 </footer>
             </div>
         </div>

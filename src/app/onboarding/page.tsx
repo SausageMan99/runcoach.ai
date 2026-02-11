@@ -167,7 +167,7 @@ export default function OnboardingPage() {
             {/* Header */}
             <header className="p-4 sm:p-6 flex items-center justify-between relative z-10">
                 <Link href="/" className="font-serif text-xl text-foreground">
-                    RunCoach
+                    <img src="/logo-full.svg" alt="Joggeur" className="h-7 w-auto" />
                 </Link>
                 <span className="text-sm text-muted-foreground font-medium">
                     {step + 1} / {questions.length}
@@ -499,7 +499,7 @@ export default function OnboardingPage() {
 
             {/* Footer */}
             <footer className="p-4 text-center text-sm text-muted-foreground">
-                © {new Date().getFullYear()} RunCoach.AI
+                © {new Date().getFullYear()} Joggeur
             </footer>
         </div>
     )

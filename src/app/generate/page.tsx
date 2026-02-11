@@ -89,8 +89,7 @@ export default function GeneratePage() {
             {/* Header */}
             <header className="relative z-10 p-6">
                 <Link href="/" className="flex items-center gap-1 w-fit">
-                    <span className="font-serif text-2xl">RunCoach</span>
-                    <span className="text-primary font-semibold">.AI</span>
+                    <img src="/logo-full.svg" alt="Joggeur" className="h-9 w-auto" />
                 </Link>
             </header>
 
@@ -185,7 +184,7 @@ export default function GeneratePage() {
 
             {/* Footer */}
             <footer className="relative z-10 p-6 text-center text-sm text-muted-foreground">
-                © {new Date().getFullYear()} RunCoach.AI
+                © {new Date().getFullYear()} Joggeur
             </footer>
         </div>
     )

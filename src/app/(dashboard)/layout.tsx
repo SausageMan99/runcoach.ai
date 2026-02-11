@@ -36,8 +36,10 @@ export default function DashboardLayout({
                 }`}>
                 {/* Logo area */}
                 <div className={`flex h-16 items-center ${sidebarExpanded ? 'px-5 gap-3' : 'justify-center'} border-b border-border/50`}>
-                    <span className="font-serif text-xl text-foreground">R</span>
-                    {sidebarExpanded && <span className="font-serif text-xl text-foreground">unCoach</span>}
+                    {sidebarExpanded
+                        ? <img src="/logo-name.svg" alt="Joggeur" className="h-8 w-auto" />
+                        : <img src="/logo-full.svg" alt="Joggeur" className="h-8 w-auto" />
+                    }
                 </div>
 
                 {/* Navigation */}

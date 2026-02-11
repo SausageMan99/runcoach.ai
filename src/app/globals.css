@@ -45,7 +45,7 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  /* RunCoach custom colors */
+  /* Joggeur custom colors */
   --color-cream: var(--cream);
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -56,7 +56,7 @@
 
 :root {
   --radius: 0.75rem;
-  /* RunCoach Nature & Authenticité Theme */
+  /* Joggeur Nature & Authenticité Theme */
   --background: #F5F1EB;
   --foreground: #2C2418;
   --card: #FDFBF7;
@@ -91,7 +91,7 @@
   --sidebar-accent-foreground: #2D5F2D;
   --sidebar-border: #D5CDBE;
   --sidebar-ring: #2D5F2D;
-  /* Custom RunCoach */
+  /* Custom Joggeur */
   --cream: #EDE8DF;
   --success: #3A7D6E;
   --warning: #D4A847;

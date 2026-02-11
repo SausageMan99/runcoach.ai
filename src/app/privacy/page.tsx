@@ -23,7 +23,7 @@ export default function PrivacyPage() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-semibold">1. Introduction</h2>
                         <p>
-                            RunCoach.AI s&apos;engage à protéger la vie privée de ses utilisateurs.
+                            Joggeur s&apos;engage à protéger la vie privée de ses utilisateurs.
                             Cette politique explique comment nous collectons, utilisons et protégeons
                             vos données personnelles.
                         </p>
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
                         <h2 className="text-2xl font-semibold">9. Contact</h2>
                         <p>
                             Pour toute question concernant vos données personnelles :
-                            privacy@runcoach.ai
+                            privacy@joggeur.app
                         </p>
                     </section>
                 </div>

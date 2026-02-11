@@ -24,7 +24,7 @@ export default function TermsPage() {
                         <h2 className="text-2xl font-semibold">1. Objet</h2>
                         <p>
                             Les présentes Conditions Générales d&apos;Utilisation (CGU) ont pour objet de définir
-                            les modalités d&apos;utilisation du service RunCoach.AI, une application web de
+                            les modalités d&apos;utilisation du service Joggeur, une application web de
                             coaching running personnalisé par intelligence artificielle.
                         </p>
                     </section>
@@ -32,7 +32,7 @@ export default function TermsPage() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-semibold">2. Description du Service</h2>
                         <p>
-                            RunCoach.AI propose la génération de programmes d&apos;entraînement running personnalisés
+                            Joggeur propose la génération de programmes d&apos;entraînement running personnalisés
                             basés sur les informations fournies par l&apos;utilisateur (niveau, objectif, disponibilité).
                         </p>
                         <p>
@@ -58,7 +58,7 @@ export default function TermsPage() {
                             d&apos;entraînement, notamment en cas de problèmes de santé préexistants.
                         </p>
                         <p>
-                            RunCoach.AI ne saurait être tenu responsable des dommages directs ou indirects
+                            Joggeur ne saurait être tenu responsable des dommages directs ou indirects
                             résultant de l&apos;utilisation du service.
                         </p>
                     </section>
@@ -74,7 +74,7 @@ export default function TermsPage() {
                     <section className="space-y-4">
                         <h2 className="text-2xl font-semibold">6. Modification des CGU</h2>
                         <p>
-                            RunCoach.AI se réserve le droit de modifier les présentes CGU à tout moment.
+                            Joggeur se réserve le droit de modifier les présentes CGU à tout moment.
                             Les utilisateurs seront informés des modifications par email ou notification
                             sur le site.
                         </p>
@@ -84,7 +84,7 @@ export default function TermsPage() {
                         <h2 className="text-2xl font-semibold">7. Contact</h2>
                         <p>
                             Pour toute question concernant ces CGU, vous pouvez nous contacter à :
-                            contact@runcoach.ai
+                            contact@joggeur.app
                         </p>
                     </section>
                 </div>

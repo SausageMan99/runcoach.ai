@@ -13,19 +13,19 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "RunCoach.AI - Ton Programme Running Sur-Mesure en 2 Minutes",
+  title: "Joggeur — Ton Programme Running Sur-Mesure en 2 Minutes",
   description: "IA coach running qui génère un programme personnalisé basé sur ton niveau, ton objectif course et ton emploi du temps. Gratuit pour commencer.",
   keywords: ["running", "course à pied", "programme entraînement", "IA", "coach running", "marathon", "10K", "semi-marathon"],
-  authors: [{ name: "RunCoach.AI" }],
+  authors: [{ name: "Joggeur" }],
   openGraph: {
-    title: "RunCoach.AI - Ton Programme Running Sur-Mesure en 2 Minutes",
+    title: "Joggeur — Ton Programme Running Sur-Mesure en 2 Minutes",
     description: "IA coach running qui génère un programme personnalisé. Gratuit pour commencer.",
     type: "website",
     locale: "fr_FR",
   },
   twitter: {
     card: "summary_large_image",
-    title: "RunCoach.AI - Programme Running Personnalisé",
+    title: "Joggeur — Programme Running Personnalisé",
     description: "IA coach qui s'adapte à ton niveau et ton objectif.",
   },
   robots: {

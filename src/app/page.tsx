@@ -101,7 +101,7 @@ export default function LandingPage() {
                 {/* Mobile Header */}
                 <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/50">
                     <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                        <span className="font-serif text-2xl text-foreground">RunCoach</span>
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-9 w-auto" />
                         <Link href="/onboarding">
                             <Button size="sm" className="rounded-2xl bg-primary text-primary-foreground font-semibold px-5">
                                 Commencer
@@ -198,7 +198,7 @@ export default function LandingPage() {
                             ))}
                         </motion.div>
                         <motion.blockquote variants={fadeUp} className="text-lg italic text-muted-foreground">
-                            &ldquo;Depuis RunCoach, je ne cours plus au feeling. Chaque séance a un objectif. J&apos;ai battu mon record sur 10K.&rdquo;
+                            &ldquo;Depuis Joggeur, je ne cours plus au feeling. Chaque séance a un objectif. J&apos;ai battu mon record sur 10K.&rdquo;
                         </motion.blockquote>
                     </motion.div>
                 </section>
@@ -226,12 +226,12 @@ export default function LandingPage() {
                 {/* Footer */}
                 <footer className="py-8 px-6 border-t border-border/50">
                     <div className="flex flex-col items-center gap-4 text-sm text-muted-foreground">
-                        <span className="font-serif text-lg text-foreground">RunCoach</span>
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-7 w-auto" />
                         <nav className="flex gap-6">
                             <Link href="/terms" className="hover:text-foreground transition-colors">CGU</Link>
                             <Link href="/privacy" className="hover:text-foreground transition-colors">Confidentialité</Link>
                         </nav>
-                        <p>© {new Date().getFullYear()} RunCoach.AI</p>
+                        <p>© {new Date().getFullYear()} Joggeur</p>
                     </div>
                 </footer>
             </div>
@@ -244,7 +244,7 @@ export default function LandingPage() {
             {/* Fixed header */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/30">
                 <div className="container mx-auto px-8 h-16 flex items-center justify-between">
-                    <span className="font-serif text-2xl text-foreground">RunCoach</span>
+                    <img src="/logo-full.svg" alt="Joggeur" className="h-9 w-auto" />
                     <nav className="flex items-center gap-8">
                         <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors font-medium text-sm">
                             Connexion
@@ -403,7 +403,7 @@ export default function LandingPage() {
                             </div>
                             <blockquote className="max-w-2xl mx-auto text-center">
                                 <p className="font-serif text-2xl text-foreground/80 italic leading-relaxed">
-                                    &ldquo;Depuis RunCoach, je ne cours plus au feeling. Chaque séance a un objectif. J&apos;ai battu mon record sur 10K en 8 semaines.&rdquo;
+                                    &ldquo;Depuis Joggeur, je ne cours plus au feeling. Chaque séance a un objectif. J&apos;ai battu mon record sur 10K en 8 semaines.&rdquo;
                                 </p>
                                 <footer className="mt-4 text-muted-foreground">- Marie, 34 ans, semi-marathonienne</footer>
                             </blockquote>
@@ -457,7 +457,7 @@ export default function LandingPage() {
 
             {/* Footer text on last slide */}
             <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 text-xs text-muted-foreground">
-                © {new Date().getFullYear()} RunCoach.AI
+                © {new Date().getFullYear()} Joggeur
             </div>
         </div>
     )
