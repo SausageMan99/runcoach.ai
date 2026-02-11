@@ -101,7 +101,7 @@ export default function LandingPage() {
                 {/* Mobile Header */}
                 <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/50">
                     <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                        <img src="/logo-full.svg" alt="Joggeur" className="h-9 w-auto" />
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-12 w-auto" />
                         <Link href="/onboarding">
                             <Button size="sm" className="rounded-2xl bg-primary text-primary-foreground font-semibold px-5">
                                 Commencer
@@ -226,7 +226,7 @@ export default function LandingPage() {
                 {/* Footer */}
                 <footer className="py-8 px-6 border-t border-border/50">
                     <div className="flex flex-col items-center gap-4 text-sm text-muted-foreground">
-                        <img src="/logo-full.svg" alt="Joggeur" className="h-7 w-auto" />
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
                         <nav className="flex gap-6">
                             <Link href="/terms" className="hover:text-foreground transition-colors">CGU</Link>
                             <Link href="/privacy" className="hover:text-foreground transition-colors">Confidentialité</Link>
@@ -244,7 +244,7 @@ export default function LandingPage() {
             {/* Fixed header */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/30">
                 <div className="container mx-auto px-8 h-16 flex items-center justify-between">
-                    <img src="/logo-full.svg" alt="Joggeur" className="h-9 w-auto" />
+                    <img src="/logo-full.svg" alt="Joggeur" className="h-12 w-auto" />
                     <nav className="flex items-center gap-8">
                         <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors font-medium text-sm">
                             Connexion

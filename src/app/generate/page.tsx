@@ -89,7 +89,7 @@ export default function GeneratePage() {
             {/* Header */}
             <header className="relative z-10 p-6">
                 <Link href="/" className="flex items-center gap-1 w-fit">
-                    <img src="/logo-full.svg" alt="Joggeur" className="h-9 w-auto" />
+                    <img src="/logo-full.svg" alt="Joggeur" className="h-12 w-auto" />
                 </Link>
             </header>
 

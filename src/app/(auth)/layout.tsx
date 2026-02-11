@@ -13,7 +13,7 @@ export default function AuthLayout({
                 <div className="blob-bg w-[300px] h-[300px] bg-accent-warm/15 bottom-20 right-10" style={{ animationDelay: '4s' }} />
                 <div className="relative z-10 max-w-md space-y-8">
                     <Link href="/">
-                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-14 w-auto" />
                     </Link>
                     <blockquote className="space-y-4">
                         <p className="font-serif text-3xl leading-relaxed text-foreground/80">
@@ -31,7 +31,7 @@ export default function AuthLayout({
                 {/* Mobile header */}
                 <header className="lg:hidden p-6">
                     <Link href="/">
-                        <img src="/logo-full.svg" alt="Joggeur" className="h-7 w-auto" />
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
                     </Link>
                 </header>
 

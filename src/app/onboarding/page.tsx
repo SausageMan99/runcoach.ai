@@ -167,7 +167,7 @@ export default function OnboardingPage() {
             {/* Header */}
             <header className="p-4 sm:p-6 flex items-center justify-between relative z-10">
                 <Link href="/" className="font-serif text-xl text-foreground">
-                    <img src="/logo-full.svg" alt="Joggeur" className="h-7 w-auto" />
+                    <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
                 </Link>
                 <span className="text-sm text-muted-foreground font-medium">
                     {step + 1} / {questions.length}

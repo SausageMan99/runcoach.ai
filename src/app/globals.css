@@ -56,43 +56,43 @@
 
 :root {
   --radius: 0.75rem;
-  /* Joggeur Nature & Authenticité Theme */
-  --background: #F5F1EB;
-  --foreground: #2C2418;
-  --card: #FDFBF7;
-  --card-foreground: #2C2418;
-  --popover: #FDFBF7;
-  --popover-foreground: #2C2418;
-  /* Primary Vert Forêt */
-  --primary: #2D5F2D;
-  --primary-foreground: #F5F1EB;
-  --secondary: #EDE8DF;
-  --secondary-foreground: #2C2418;
+  /* Joggeur — Bold, hand-drawn, organic */
+  --background: #F5F0E8;
+  --foreground: #1A1A1A;
+  --card: #FDFBF6;
+  --card-foreground: #1A1A1A;
+  --popover: #FDFBF6;
+  --popover-foreground: #1A1A1A;
+  /* Primary — Bold black to match logo */
+  --primary: #1A1A1A;
+  --primary-foreground: #F5F0E8;
+  --secondary: #EDE7DC;
+  --secondary-foreground: #1A1A1A;
   --muted: #DDD7CC;
-  --muted-foreground: #7A7060;
-  --accent: #EDE8DF;
-  --accent-foreground: #2C2418;
+  --muted-foreground: #6B6256;
+  --accent: #EDE7DC;
+  --accent-foreground: #1A1A1A;
   --destructive: #C4453A;
-  --border: #D5CDBE;
-  --input: #D5CDBE;
-  --ring: #2D5F2D;
+  --border: #C8BFA8;
+  --input: #C8BFA8;
+  --ring: #1A1A1A;
   /* Charts */
-  --chart-1: #2D5F2D;
+  --chart-1: #1A1A1A;
   --chart-2: #5B8C5A;
   --chart-3: #C17F59;
   --chart-4: #3A7D6E;
   --chart-5: #D4A847;
   /* Sidebar */
-  --sidebar: #FDFBF7;
-  --sidebar-foreground: #2C2418;
-  --sidebar-primary: #2D5F2D;
-  --sidebar-primary-foreground: #F5F1EB;
-  --sidebar-accent: #EDE8DF;
-  --sidebar-accent-foreground: #2D5F2D;
-  --sidebar-border: #D5CDBE;
-  --sidebar-ring: #2D5F2D;
+  --sidebar: #FDFBF6;
+  --sidebar-foreground: #1A1A1A;
+  --sidebar-primary: #1A1A1A;
+  --sidebar-primary-foreground: #F5F0E8;
+  --sidebar-accent: #EDE7DC;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: #C8BFA8;
+  --sidebar-ring: #1A1A1A;
   /* Custom Joggeur */
-  --cream: #EDE8DF;
+  --cream: #EDE7DC;
   --success: #3A7D6E;
   --warning: #D4A847;
   --accent-warm: #C17F59;
@@ -101,43 +101,43 @@
 }
 
 .dark {
-  --background: #1A1D17;
-  --foreground: #E8E2D6;
-  --card: #252820;
-  --card-foreground: #E8E2D6;
-  --popover: #252820;
-  --popover-foreground: #E8E2D6;
-  --primary: #6FA86E;
-  --primary-foreground: #1A1D17;
-  --secondary: #3A3E32;
-  --secondary-foreground: #E8E2D6;
-  --muted: #3A3E32;
+  --background: #141210;
+  --foreground: #EDE7DC;
+  --card: #1E1C18;
+  --card-foreground: #EDE7DC;
+  --popover: #1E1C18;
+  --popover-foreground: #EDE7DC;
+  --primary: #EDE7DC;
+  --primary-foreground: #141210;
+  --secondary: #2A2722;
+  --secondary-foreground: #EDE7DC;
+  --muted: #2A2722;
   --muted-foreground: #9B9484;
-  --accent: #3A3E32;
-  --accent-foreground: #E8E2D6;
+  --accent: #2A2722;
+  --accent-foreground: #EDE7DC;
   --destructive: #D15A4F;
-  --border: #3A3E32;
-  --input: #3A3E32;
-  --ring: #6FA86E;
-  --chart-1: #6FA86E;
-  --chart-2: #5B8C5A;
+  --border: #3A362E;
+  --input: #3A362E;
+  --ring: #EDE7DC;
+  --chart-1: #EDE7DC;
+  --chart-2: #8DB58C;
   --chart-3: #C17F59;
   --chart-4: #3A7D6E;
   --chart-5: #D4A847;
-  --sidebar: #252820;
-  --sidebar-foreground: #E8E2D6;
-  --sidebar-primary: #6FA86E;
-  --sidebar-primary-foreground: #1A1D17;
-  --sidebar-accent: #3A3E32;
-  --sidebar-accent-foreground: #E8E2D6;
-  --sidebar-border: #3A3E32;
-  --sidebar-ring: #6FA86E;
-  --cream: #E8E2D6;
+  --sidebar: #1E1C18;
+  --sidebar-foreground: #EDE7DC;
+  --sidebar-primary: #EDE7DC;
+  --sidebar-primary-foreground: #141210;
+  --sidebar-accent: #2A2722;
+  --sidebar-accent-foreground: #EDE7DC;
+  --sidebar-border: #3A362E;
+  --sidebar-ring: #EDE7DC;
+  --cream: #EDE7DC;
   --success: #3A7D6E;
   --warning: #D4A847;
   --accent-warm: #C17F59;
-  --moss: #6FA86E;
-  --moss-light: #2D5F2D;
+  --moss: #8DB58C;
+  --moss-light: #5B8C5A;
 }
 
 @layer base {
@@ -296,21 +296,27 @@
 
 /* Glass card effect */
 .glass-card {
-  background: rgba(253, 251, 247, 0.7);
+  background: rgba(253, 251, 246, 0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(253, 251, 247, 0.3);
+  border: 2px solid rgba(26, 26, 26, 0.08);
 }
 
-/* Gradient accent — forêt → mousse → terracotta */
+/* Gradient accent — encre → mousse → terracotta */
 .gradient-accent {
-  background: linear-gradient(135deg, #2D5F2D 0%, #5B8C5A 40%, #C17F59 100%);
+  background: linear-gradient(135deg, #1A1A1A 0%, #5B8C5A 50%, #C17F59 100%);
 }
 
 .gradient-accent-text {
-  background: linear-gradient(135deg, #2D5F2D 0%, #5B8C5A 40%, #C17F59 100%);
+  background: linear-gradient(135deg, #1A1A1A 0%, #5B8C5A 50%, #C17F59 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Hand-drawn style border */
+.hand-drawn {
+  border: 2.5px solid #1A1A1A;
+  border-radius: 12px 8px 14px 6px / 8px 12px 6px 14px;
 }
 
 /* Blob background shape — brume lente */
