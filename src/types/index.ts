@@ -19,6 +19,49 @@ export interface Program {
     program_data: ProgramData
     created_at: string
     is_active: boolean
+    race_id: string | null
+}
+
+// Race types
+export interface Race {
+    id: string
+    name: string
+    city: string
+    country: string
+    date: string
+    distance_km: number
+    elevation_gain_m: number
+    elevation_loss_m: number
+    terrain_type: 'route' | 'trail' | 'mixte'
+    difficulty: 'facile' | 'moyen' | 'difficile' | 'expert'
+    key_points: string[]
+    typical_weather: string | null
+    website_url: string | null
+}
+
+// Daily Check-In types
+export interface DailyCheckIn {
+    id: string
+    user_id: string
+    program_id: string
+    session_id: string
+    feeling: 1 | 2 | 3
+    adjustment_made: AdjustedSession | null
+    date: string
+    created_at: string
+}
+
+export interface AdjustedSession {
+    original_type: string
+    adjusted_type: string
+    intensity_reduction: number
+    message: string
+}
+
+export interface CheckInResult {
+    success: boolean
+    adjustment: AdjustedSession | null
+    message: string
 }
 
 export interface ProgramData {

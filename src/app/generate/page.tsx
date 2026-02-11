@@ -3,17 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 
 const loadingTips = [
-    "🧠 Analyse de ton profil running...",
-    "📊 Calcul de tes allures optimales...",
-    "📈 Construction du plan de progression...",
-    "🗓️ Répartition des séances par semaine...",
-    "💪 Intégration des phases de récupération...",
-    "✨ Presque prêt...",
+    "Analyse de ton profil running...",
+    "Calcul de tes allures optimales...",
+    "Construction du plan de progression...",
+    "Répartition des séances par semaine...",
+    "Intégration des phases de récupération...",
+    "Presque prêt...",
 ]
 
 export default function GeneratePage() {
@@ -38,7 +37,6 @@ export default function GeneratePage() {
     useEffect(() => {
         const generateProgram = async () => {
             try {
-                // Get onboarding data from localStorage
                 const storageKey = 'runcoach_onboarding'
                 const savedData = localStorage.getItem(storageKey)
 
@@ -50,12 +48,9 @@ export default function GeneratePage() {
 
                 const onboardingData = JSON.parse(savedData)
 
-                // Call API
                 const response = await fetch('/api/generate-program', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(onboardingData),
                 })
 
@@ -67,14 +62,10 @@ export default function GeneratePage() {
                     return
                 }
 
-                // Success!
                 setProgramId(result.programId)
                 setStatus('success')
-
-                // Clear onboarding data
                 localStorage.removeItem(storageKey)
 
-                // Redirect after short delay
                 setTimeout(() => {
                     router.push('/dashboard?new=true')
                 }, 2000)
@@ -90,104 +81,110 @@ export default function GeneratePage() {
     }, [router])
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex flex-col">
+        <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+            {/* Blob backgrounds */}
+            <div className="blob-bg" />
+            <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-accent-warm/10 rounded-full blur-3xl" />
+
             {/* Header */}
-            <header className="p-4">
-                <Link href="/" className="flex items-center gap-2 w-fit">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <span className="text-primary-foreground font-bold text-sm">RC</span>
-                    </div>
-                    <span className="font-bold text-xl">RunCoach<span className="text-primary">.AI</span></span>
+            <header className="relative z-10 p-6">
+                <Link href="/" className="flex items-center gap-1 w-fit">
+                    <span className="font-serif text-2xl">RunCoach</span>
+                    <span className="text-primary font-semibold">.AI</span>
                 </Link>
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md shadow-xl border-border/50">
-                    <CardContent className="pt-8 pb-8 text-center">
-                        {status === 'loading' && (
-                            <div className="space-y-6">
-                                {/* Animated Runner */}
-                                <div className="relative w-24 h-24 mx-auto">
-                                    <div className="absolute inset-0 bg-primary/10 rounded-full animate-ping" />
-                                    <div className="absolute inset-2 bg-primary/20 rounded-full animate-pulse" />
-                                    <div className="absolute inset-4 bg-primary/30 rounded-full flex items-center justify-center">
-                                        <span className="text-4xl">🏃</span>
+            <main className="relative z-10 flex-1 flex items-center justify-center p-6">
+                <div className="w-full max-w-md text-center">
+                    {status === 'loading' && (
+                        <div className="space-y-8">
+                            {/* Concentric pulsing circles */}
+                            <div className="relative w-40 h-40 mx-auto">
+                                <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-[concentric-pulse_3s_ease-out_infinite]" />
+                                <div className="absolute inset-4 rounded-full border-2 border-primary/30 animate-[concentric-pulse_3s_ease-out_0.5s_infinite]" />
+                                <div className="absolute inset-8 rounded-full border-2 border-primary/40 animate-[concentric-pulse_3s_ease-out_1s_infinite]" />
+                                <div className="absolute inset-12 rounded-full bg-primary/10 animate-pulse-soft flex items-center justify-center">
+                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-moss-light flex items-center justify-center">
+                                        <span className="text-3xl">🏃</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="space-y-2">
-                                    <h2 className="text-2xl font-bold">
-                                        Génération en cours...
-                                    </h2>
-                                    <p className="text-muted-foreground transition-all duration-500">
-                                        {loadingTips[currentTip]}
-                                    </p>
-                                </div>
-
-                                <Loader2 className="w-6 h-6 mx-auto animate-spin text-primary" />
-
-                                <p className="text-sm text-muted-foreground">
-                                    Cela peut prendre jusqu&apos;à 30 secondes
+                            <div className="space-y-3">
+                                <h2 className="font-serif text-3xl">
+                                    Génération en cours
+                                </h2>
+                                <p className="text-muted-foreground transition-all duration-500 min-h-[1.5rem]">
+                                    {loadingTips[currentTip]}
                                 </p>
                             </div>
-                        )}
 
-                        {status === 'success' && (
-                            <div className="space-y-6">
-                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                                    <CheckCircle className="w-10 h-10 text-green-600" />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <h2 className="text-2xl font-bold text-green-600">
-                                        Programme créé ! 🎉
-                                    </h2>
-                                    <p className="text-muted-foreground">
-                                        Ton plan personnalisé est prêt. Redirection...
-                                    </p>
-                                </div>
+                            {/* Gradient progress bar */}
+                            <div className="w-48 h-1.5 mx-auto rounded-full bg-muted overflow-hidden">
+                                <div className="h-full w-1/2 rounded-full gradient-accent animate-[shimmer_1.5s_ease-in-out_infinite]" />
                             </div>
-                        )}
 
-                        {status === 'error' && (
-                            <div className="space-y-6">
-                                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                                    <AlertCircle className="w-10 h-10 text-red-600" />
-                                </div>
+                            <p className="text-sm text-muted-foreground">
+                                Cela peut prendre jusqu&apos;à 30 secondes
+                            </p>
+                        </div>
+                    )}
 
-                                <div className="space-y-2">
-                                    <h2 className="text-2xl font-bold text-red-600">
-                                        Oups ! 😕
-                                    </h2>
-                                    <p className="text-muted-foreground">
-                                        {error}
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <Button
-                                        onClick={() => window.location.reload()}
-                                        className="w-full"
-                                    >
-                                        Réessayer
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => router.push('/onboarding')}
-                                        className="w-full"
-                                    >
-                                        Recommencer le questionnaire
-                                    </Button>
-                                </div>
+                    {status === 'success' && (
+                        <div className="space-y-6 animate-scale-in">
+                            <div className="w-24 h-24 bg-success/10 rounded-3xl flex items-center justify-center mx-auto">
+                                <CheckCircle className="w-12 h-12 text-success" />
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+
+                            <div className="space-y-2">
+                                <h2 className="font-serif text-3xl text-success">
+                                    Programme créé !
+                                </h2>
+                                <p className="text-muted-foreground">
+                                    Ton plan personnalisé est prêt. Redirection...
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {status === 'error' && (
+                        <div className="space-y-6 animate-scale-in">
+                            <div className="w-24 h-24 bg-destructive/10 rounded-3xl flex items-center justify-center mx-auto">
+                                <AlertCircle className="w-12 h-12 text-destructive" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <h2 className="font-serif text-3xl text-destructive">
+                                    Oups !
+                                </h2>
+                                <p className="text-muted-foreground">
+                                    {error}
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                                <Button
+                                    onClick={() => window.location.reload()}
+                                    className="w-full rounded-2xl py-6 font-semibold"
+                                >
+                                    Réessayer
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => router.push('/onboarding')}
+                                    className="w-full rounded-2xl py-6 border-border/50"
+                                >
+                                    Recommencer le questionnaire
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </main>
 
             {/* Footer */}
-            <footer className="p-4 text-center text-sm text-muted-foreground">
+            <footer className="relative z-10 p-6 text-center text-sm text-muted-foreground">
                 © {new Date().getFullYear()} RunCoach.AI
             </footer>
         </div>

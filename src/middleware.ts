@@ -66,7 +66,9 @@ export async function middleware(request: NextRequest) {
 
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    const redirectTo = request.nextUrl.searchParams.get("redirect");
+    url.pathname = redirectTo || "/dashboard";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

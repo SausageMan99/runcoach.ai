@@ -6,6 +6,16 @@ export const programGenerationPrompt = (data: {
   sessionsPerWeek: number
   referenceTime: string | null
   injuriesNotes: string | null
+  raceContext?: {
+    name: string
+    distance_km: number
+    elevation_gain_m: number
+    terrain_type: string
+    difficulty: string
+    key_points: string[]
+    typical_weather: string | null
+    date: string
+  } | null
 }) => `Tu es un coach running expert. Génère un programme de ${data.weeksAvailable} semaines.
 
 PROFIL: ${data.level} | Objectif: ${data.goal} | ${data.sessionsPerWeek} séances/sem${data.referenceTime ? ` | Réf: ${data.referenceTime}` : ''}${data.injuriesNotes ? ` | Attention: ${data.injuriesNotes}` : ''}
@@ -41,7 +51,21 @@ Retourne CE JSON EXACT (TOUTES les ${data.weeksAvailable} semaines):
   "tips":["Conseil spécifique 1","Conseil spécifique 2","Conseil spécifique 3"]
 }
 
-IMPORTANT: 
+${data.raceContext ? `
+COURSE CIBLE : ${data.raceContext.name}
+- Distance : ${data.raceContext.distance_km} km
+- Terrain : ${data.raceContext.terrain_type}${data.raceContext.elevation_gain_m > 0 ? ` | D+ ${data.raceContext.elevation_gain_m}m` : ''}
+- Difficulté : ${data.raceContext.difficulty}
+- Date : ${data.raceContext.date}
+- Météo typique : ${data.raceContext.typical_weather || 'Variable'}
+${data.raceContext.key_points.length > 0 ? `- Points clés : ${data.raceContext.key_points.join(', ')}` : ''}
+
+RÈGLES SPÉCIFIQUES COURSE :
+- Adapte l'entraînement au terrain (${data.raceContext.terrain_type === 'trail' ? 'inclure côtes, descentes techniques, renforcement' : 'travail d\'allure spécifique'})
+${data.raceContext.elevation_gain_m > 500 ? '- Inclure des séances de dénivelé progressif' : ''}
+- Affûtage calé sur la date de course (2-3 dernières semaines)
+- Dernière sortie longue 2-3 semaines avant la course
+` : ''}IMPORTANT:
 - Génère ${data.weeksAvailable} semaines COMPLÈTES
 - EXACTEMENT ${data.sessionsPerWeek} séances d'entraînement par semaine + les jours de repos
 - Descriptions COURTES (max 50 caractères)

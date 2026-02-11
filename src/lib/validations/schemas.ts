@@ -12,6 +12,8 @@ export const onboardingSchema = z.object({
     referenceTime: z.string().max(100).optional(),
     hasReferenceTime: z.boolean().optional(),
     injuriesNotes: z.string().max(500).optional(),
+    raceId: z.string().uuid().optional(),
+    raceName: z.string().max(200).optional(),
 })
 
 export type OnboardingData = z.infer<typeof onboardingSchema>

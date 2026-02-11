@@ -50,6 +50,29 @@ export async function POST(request: Request) {
             }
         }
 
+        // Fetch race context if raceId provided
+        let raceContext = null
+        if (data.raceId) {
+            const { data: race } = await supabase
+                .from('races')
+                .select('*')
+                .eq('id', data.raceId)
+                .single()
+
+            if (race) {
+                raceContext = {
+                    name: race.name,
+                    distance_km: race.distance_km,
+                    elevation_gain_m: race.elevation_gain_m,
+                    terrain_type: race.terrain_type,
+                    difficulty: race.difficulty,
+                    key_points: race.key_points || [],
+                    typical_weather: race.typical_weather,
+                    date: race.date,
+                }
+            }
+        }
+
         // Generate program with Claude
         const programData = await generateProgram({
             level: data.level,
@@ -58,6 +81,7 @@ export async function POST(request: Request) {
             sessionsPerWeek: data.sessionsPerWeek,
             referenceTime: data.hasReferenceTime && data.referenceTime ? data.referenceTime : null,
             injuriesNotes: data.injuriesNotes || null,
+            raceContext,
         })
 
         // Deactivate any existing programs
@@ -79,6 +103,7 @@ export async function POST(request: Request) {
                 injuries_notes: data.injuriesNotes || null,
                 program_data: programData,
                 is_active: true,
+                ...(data.raceId ? { race_id: data.raceId } : {}),
             })
             .select()
             .single()

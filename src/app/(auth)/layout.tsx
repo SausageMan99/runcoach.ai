@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function AuthLayout({
     children,
@@ -7,29 +6,45 @@ export default function AuthLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            {/* Header */}
-            <header className="p-6 border-b-2 border-foreground">
-                <Link href="/" className="flex items-center gap-3 w-fit">
-                    <Image
-                        src="/logo.jpg"
-                        alt="RunCoach.AI"
-                        width={40}
-                        height={40}
-                    />
-                    <span className="font-bold text-xl">RunCoach<span className="font-normal">.AI</span></span>
-                </Link>
-            </header>
+        <div className="min-h-screen bg-background flex">
+            {/* Left panel - Motivation (hidden on mobile) */}
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-moss-light/5 to-accent-warm/10 relative overflow-hidden items-center justify-center p-12">
+                <div className="blob-bg w-[400px] h-[400px] bg-primary/15 top-10 -left-20" />
+                <div className="blob-bg w-[300px] h-[300px] bg-accent-warm/15 bottom-20 right-10" style={{ animationDelay: '4s' }} />
+                <div className="relative z-10 max-w-md space-y-8">
+                    <Link href="/" className="font-serif text-3xl text-foreground">
+                        RunCoach
+                    </Link>
+                    <blockquote className="space-y-4">
+                        <p className="font-serif text-3xl leading-relaxed text-foreground/80">
+                            &ldquo;La course ne consiste pas à être meilleur que les autres. C&apos;est être meilleur que celui que tu étais hier.&rdquo;
+                        </p>
+                        <footer className="text-muted-foreground">
+                            - Ton futur toi
+                        </footer>
+                    </blockquote>
+                </div>
+            </div>
 
-            {/* Main content */}
-            <main className="flex-1 flex items-center justify-center p-6">
-                {children}
-            </main>
+            {/* Right panel - Form */}
+            <div className="flex-1 flex flex-col">
+                {/* Mobile header */}
+                <header className="lg:hidden p-6">
+                    <Link href="/" className="font-serif text-xl text-foreground">
+                        RunCoach
+                    </Link>
+                </header>
 
-            {/* Footer */}
-            <footer className="p-6 border-t-2 border-foreground text-center text-sm text-foreground/70">
-                © {new Date().getFullYear()} RunCoach.AI
-            </footer>
+                {/* Main content */}
+                <main className="flex-1 flex items-center justify-center p-6">
+                    {children}
+                </main>
+
+                {/* Footer */}
+                <footer className="p-6 text-center text-sm text-muted-foreground">
+                    © {new Date().getFullYear()} RunCoach.AI
+                </footer>
+            </div>
         </div>
     )
 }

@@ -13,6 +13,16 @@ export interface GenerateProgramInput {
     sessionsPerWeek: number
     referenceTime: string | null
     injuriesNotes: string | null
+    raceContext?: {
+        name: string
+        distance_km: number
+        elevation_gain_m: number
+        terrain_type: string
+        difficulty: string
+        key_points: string[]
+        typical_weather: string | null
+        date: string
+    } | null
 }
 
 export async function generateProgram(input: GenerateProgramInput): Promise<ProgramData> {
