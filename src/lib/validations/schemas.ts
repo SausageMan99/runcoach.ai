@@ -44,6 +44,20 @@ export const loginSchema = z.object({
 
 export type LoginData = z.infer<typeof loginSchema>
 
+export const customRaceSchema = z.object({
+    name: z.string().min(1, 'Nom de la course requis').max(200),
+    city: z.string().max(100).optional(),
+    date: z.string().min(1, 'Date requise'),
+    distanceKm: z.string().min(1, 'Distance requise').refine(
+        (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+        { message: 'Distance invalide' }
+    ),
+    elevationGain: z.string().optional(),
+    terrainType: z.enum(['route', 'trail', 'mixte']),
+})
+
+export type CustomRaceFormData = z.infer<typeof customRaceSchema>
+
 export const profileSchema = z.object({
     firstName: z.string().min(1).max(50).optional(),
 })

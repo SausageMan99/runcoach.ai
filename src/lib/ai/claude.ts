@@ -88,8 +88,6 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
         : 'claude-3-5-haiku-20241022'
     const maxTokens = weeksAvailable > 10 ? 16384 : 8000
 
-    console.log(`Generating ${weeksAvailable}-week program with ${model} (max ${maxTokens} tokens)`)
-
     try {
         const message = await anthropic.messages.create({
             model,
@@ -149,7 +147,6 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
 
         // Retry once on parsing errors or incomplete programs
         if (error instanceof SyntaxError || (error instanceof Error && error.message === 'Incomplete program')) {
-            console.log('Program generation issue, attempting retry...')
             return retryGeneration(input, weeksAvailable)
         }
 
@@ -161,8 +158,6 @@ async function retryGeneration(input: GenerateProgramInput, weeksAvailable: numb
     // Always use Sonnet for retry to maximize token budget
     const model = 'claude-sonnet-4-5-20250929'
     const maxTokens = 16384
-
-    console.log(`Retrying with ${model} (${maxTokens} tokens)`)
 
     const prompt = programGenerationPrompt({
         ...input,

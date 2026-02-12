@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Clock, MapPin, Target, Zap, ChevronRight } from 'lucide-react'
 import type { Program, SessionTracking, Week, AdjustedSession } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 interface ProgramCheckIn {
     session_id: string
@@ -53,29 +54,44 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
 
     const currentWeek = getCurrentWeek()
     const [selectedWeek, setSelectedWeek] = useState(currentWeek)
-    const selectedWeekData = weeks.find(w => w.week_number === selectedWeek)
+    const selectedWeekData = useMemo(() => weeks.find(w => w.week_number === selectedWeek), [weeks, selectedWeek])
 
     const toggleSession = async (weekNumber: number, day: string, completed: boolean) => {
-        const supabase = createClient()
-        const existingTracking = tracking.find(t => t.week_number === weekNumber && t.session_day === day)
-        if (existingTracking) {
-            await supabase.from('session_tracking').update({ completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', existingTracking.id)
-            setTracking(prev => prev.map(t => t.id === existingTracking.id ? { ...t, completed, completed_at: completed ? new Date().toISOString() : null } : t))
-        } else {
-            const { data } = await supabase.from('session_tracking').insert({ program_id: program.id, user_id: program.user_id, week_number: weekNumber, session_day: day, completed, completed_at: completed ? new Date().toISOString() : null }).select().single()
-            if (data) setTracking(prev => [...prev, data])
+        const previousTracking = [...tracking]
+        try {
+            const supabase = createClient()
+            const existingTracking = tracking.find(t => t.week_number === weekNumber && t.session_day === day)
+            if (existingTracking) {
+                setTracking(prev => prev.map(t => t.id === existingTracking.id ? { ...t, completed, completed_at: completed ? new Date().toISOString() : null } : t))
+                const { error } = await supabase.from('session_tracking').update({ completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', existingTracking.id)
+                if (error) throw error
+            } else {
+                const { data, error } = await supabase.from('session_tracking').insert({ program_id: program.id, user_id: program.user_id, week_number: weekNumber, session_day: day, completed, completed_at: completed ? new Date().toISOString() : null }).select().single()
+                if (error) throw error
+                if (data) setTracking(prev => [...prev, data])
+            }
+        } catch {
+            setTracking(previousTracking)
+            toast.error('Impossible de mettre à jour la séance')
         }
     }
 
     const saveNotes = async (weekNumber: number, day: string, noteText: string) => {
-        const supabase = createClient()
-        const existingTracking = tracking.find(t => t.week_number === weekNumber && t.session_day === day)
-        if (existingTracking) {
-            await supabase.from('session_tracking').update({ notes: noteText }).eq('id', existingTracking.id)
-            setTracking(prev => prev.map(t => t.id === existingTracking.id ? { ...t, notes: noteText } : t))
-        } else {
-            const { data } = await supabase.from('session_tracking').insert({ program_id: program.id, user_id: program.user_id, week_number: weekNumber, session_day: day, completed: false, notes: noteText }).select().single()
-            if (data) setTracking(prev => [...prev, data])
+        try {
+            const supabase = createClient()
+            const existingTracking = tracking.find(t => t.week_number === weekNumber && t.session_day === day)
+            if (existingTracking) {
+                const { error } = await supabase.from('session_tracking').update({ notes: noteText }).eq('id', existingTracking.id)
+                if (error) throw error
+                setTracking(prev => prev.map(t => t.id === existingTracking.id ? { ...t, notes: noteText } : t))
+            } else {
+                const { data, error } = await supabase.from('session_tracking').insert({ program_id: program.id, user_id: program.user_id, week_number: weekNumber, session_day: day, completed: false, notes: noteText }).select().single()
+                if (error) throw error
+                if (data) setTracking(prev => [...prev, data])
+            }
+            toast.success('Notes sauvegardées')
+        } catch {
+            toast.error('Impossible de sauvegarder les notes')
         }
     }
 
@@ -92,15 +108,25 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
         return checkIns.find(c => c.session_id === sessionId) || null
     }
 
-    const getWeekProgress = (week: Week) => {
-        const trainingSessions = week.sessions.filter(s => !s.rest_day)
-        const completed = trainingSessions.filter(s => isSessionCompleted(week.week_number, s.day)).length
-        return { completed, total: trainingSessions.length }
-    }
+    const weekProgressMap = useMemo(() => {
+        const map: Record<number, { completed: number; total: number }> = {}
+        for (const week of weeks) {
+            const trainingSessions = week.sessions.filter(s => !s.rest_day)
+            const completed = trainingSessions.filter(s =>
+                tracking.some(t => t.week_number === week.week_number && t.session_day === s.day && t.completed)
+            ).length
+            map[week.week_number] = { completed, total: trainingSessions.length }
+        }
+        return map
+    }, [weeks, tracking])
 
-    const totalCompleted = tracking.filter(t => t.completed).length
-    const totalSessionsAll = weeks.reduce((acc, w) => acc + w.sessions.filter(s => !s.rest_day).length, 0)
-    const globalProgress = totalSessionsAll > 0 ? (totalCompleted / totalSessionsAll) * 100 : 0
+    const getWeekProgress = (week: Week) => weekProgressMap[week.week_number] || { completed: 0, total: 0 }
+
+    const globalProgress = useMemo(() => {
+        const completed = tracking.filter(t => t.completed).length
+        const total = weeks.reduce((acc, w) => acc + w.sessions.filter(s => !s.rest_day).length, 0)
+        return total > 0 ? (completed / total) * 100 : 0
+    }, [tracking, weeks])
 
     return (
         <div className="p-6 lg:p-8">
@@ -151,7 +177,7 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
                 </Card>
 
                 {/* Week Selector - Horizontal scroll */}
-                <div ref={weekScrollRef} className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
+                <div ref={weekScrollRef} role="tablist" aria-label="Sélection de semaine" className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
                     {weeks.map((week) => {
                         const progress = getWeekProgress(week)
                         const isComplete = progress.completed === progress.total
@@ -161,6 +187,9 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
                         return (
                             <button
                                 key={week.week_number}
+                                role="tab"
+                                aria-selected={isSelected}
+                                aria-label={`Semaine ${week.week_number}`}
                                 onClick={() => setSelectedWeek(week.week_number)}
                                 className={`flex-shrink-0 px-4 py-3 rounded-2xl border-2 transition-all text-sm ${isSelected
                                     ? 'border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20'

@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ArrowRight, Flame, Clock, MapPin } from 'lucide-react'
 import type { Program, SessionTracking, Race, AdjustedSession } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import DailyCheckInCard from '@/components/dashboard/daily-check-in-card'
 import RaceCountdownCard from '@/components/dashboard/race-countdown-card'
 import InjuryRiskWidget from '@/components/dashboard/injury-risk-widget'
@@ -67,32 +68,30 @@ export default function DashboardClient({
     const currentWeekData = program?.program_data.weeks.find(w => w.week_number === currentWeek)
     const lastWeekData = program?.program_data.weeks.find(w => w.week_number === currentWeek - 1)
 
-    const totalSessions = program?.program_data.weeks.reduce((acc, week) => {
+    const totalSessions = useMemo(() => program?.program_data.weeks.reduce((acc, week) => {
         return acc + week.sessions.filter(s => !s.rest_day).length
-    }, 0) || 0
+    }, 0) || 0, [program])
 
-    const completedSessions = tracking.filter(t => t.completed).length
+    const completedSessions = useMemo(() => tracking.filter(t => t.completed).length, [tracking])
 
-    const calculateStreak = () => {
+    const streak = useMemo(() => {
         const completedTracking = tracking.filter(t => t.completed && t.completed_at)
         if (!completedTracking.length) return 0
         const sortedTracking = [...completedTracking]
             .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())
-        let streak = 0
+        let s = 0
         let currentDate = new Date(sortedTracking[0].completed_at!)
         for (const session of sortedTracking) {
             const sessionDate = new Date(session.completed_at!)
             const daysDiff = Math.floor((currentDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
-            if (streak > 0 && daysDiff > 3) break
-            streak++
+            if (s > 0 && daysDiff > 3) break
+            s++
             currentDate = sessionDate
         }
-        return streak
-    }
+        return s
+    }, [tracking])
 
-    const streak = calculateStreak()
-
-    const getNextSession = () => {
+    const nextSession = useMemo(() => {
         if (!program || !currentWeekData) return null
         const completedInWeek = tracking.filter(t => t.week_number === currentWeek && t.completed)
         const completedDays = completedInWeek.map(t => t.session_day)
@@ -109,9 +108,9 @@ export default function DashboardClient({
             }
         }
         return null
-    }
+    }, [program, currentWeekData, currentWeek, tracking])
 
-    const nextSession = getNextSession()
+    const reversedCheckIns = useMemo(() => recentCheckIns.slice().reverse(), [recentCheckIns])
 
     const injuryRisk = useMemo(() => {
         if (!program || !currentWeekData) return null
@@ -139,14 +138,22 @@ export default function DashboardClient({
 
     const toggleSession = async (weekNumber: number, day: string, completed: boolean) => {
         if (!program) return
-        const supabase = createClient()
-        const existingTracking = tracking.find(t => t.week_number === weekNumber && t.session_day === day)
-        if (existingTracking) {
-            await supabase.from('session_tracking').update({ completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', existingTracking.id)
-            setTracking(prev => prev.map(t => t.id === existingTracking.id ? { ...t, completed, completed_at: completed ? new Date().toISOString() : null } : t))
-        } else {
-            const { data } = await supabase.from('session_tracking').insert({ program_id: program.id, user_id: program.user_id, week_number: weekNumber, session_day: day, completed, completed_at: completed ? new Date().toISOString() : null }).select().single()
-            if (data) setTracking(prev => [...prev, data])
+        const previousTracking = [...tracking]
+        try {
+            const supabase = createClient()
+            const existingTracking = tracking.find(t => t.week_number === weekNumber && t.session_day === day)
+            if (existingTracking) {
+                setTracking(prev => prev.map(t => t.id === existingTracking.id ? { ...t, completed, completed_at: completed ? new Date().toISOString() : null } : t))
+                const { error } = await supabase.from('session_tracking').update({ completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', existingTracking.id)
+                if (error) throw error
+            } else {
+                const { data, error } = await supabase.from('session_tracking').insert({ program_id: program.id, user_id: program.user_id, week_number: weekNumber, session_day: day, completed, completed_at: completed ? new Date().toISOString() : null }).select().single()
+                if (error) throw error
+                if (data) setTracking(prev => [...prev, data])
+            }
+        } catch {
+            setTracking(previousTracking)
+            toast.error('Impossible de mettre à jour la séance')
         }
     }
 
@@ -296,25 +303,25 @@ export default function DashboardClient({
                 {race && <RaceCountdownCard race={race} />}
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     <Card className="bg-card">
-                        <CardContent className="pt-5 pb-5 text-center">
+                        <CardContent className="pt-3 pb-3 sm:pt-5 sm:pb-5 text-center">
                             <div className="flex items-center justify-center gap-1 mb-1">
                                 <Flame className="w-5 h-5 text-accent-warm" />
                             </div>
-                            <p className="font-serif text-2xl">{streak}</p>
+                            <p className="font-serif text-xl sm:text-2xl">{streak}</p>
                             <p className="text-xs text-muted-foreground">Streak</p>
                         </CardContent>
                     </Card>
                     <Card className="bg-card">
-                        <CardContent className="pt-5 pb-5 text-center">
-                            <p className="font-serif text-2xl">{completedSessions}<span className="text-muted-foreground text-base">/{totalSessions}</span></p>
+                        <CardContent className="pt-3 pb-3 sm:pt-5 sm:pb-5 text-center">
+                            <p className="font-serif text-xl sm:text-2xl">{completedSessions}<span className="text-muted-foreground text-base">/{totalSessions}</span></p>
                             <p className="text-xs text-muted-foreground">Séances</p>
                         </CardContent>
                     </Card>
                     <Card className="bg-card">
-                        <CardContent className="pt-5 pb-5 text-center">
-                            <p className="font-serif text-2xl">{currentWeekData?.total_volume_km || 0}</p>
+                        <CardContent className="pt-3 pb-3 sm:pt-5 sm:pb-5 text-center">
+                            <p className="font-serif text-xl sm:text-2xl">{currentWeekData?.total_volume_km || 0}</p>
                             <p className="text-xs text-muted-foreground">Km/semaine</p>
                         </CardContent>
                     </Card>
@@ -326,7 +333,7 @@ export default function DashboardClient({
                         <CardContent className="pt-6">
                             <h3 className="font-semibold mb-4">Tes derniers check-ins</h3>
                             <div className="flex items-center justify-between gap-2">
-                                {recentCheckIns.slice().reverse().map((checkIn, i) => {
+                                {reversedCheckIns.map((checkIn, i) => {
                                     const date = new Date(checkIn.date)
                                     const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3)
                                     const isRest = checkIn.adjustment_made?.intensity_reduction === 100

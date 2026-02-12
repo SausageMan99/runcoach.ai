@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { X } from 'lucide-react'
+import { customRaceSchema, type CustomRaceFormData } from '@/lib/validations/schemas'
 
 interface CustomRaceData {
     id: string
@@ -30,25 +32,30 @@ interface CustomRaceFormProps {
 }
 
 export default function CustomRaceForm({ initialName, onSubmit, onCancel }: CustomRaceFormProps) {
-    const [name, setName] = useState(initialName)
-    const [city, setCity] = useState('')
-    const [date, setDate] = useState('')
-    const [distanceKm, setDistanceKm] = useState('')
-    const [elevationGain, setElevationGain] = useState('')
-    const [terrainType, setTerrainType] = useState<'route' | 'trail' | 'mixte'>('route')
+    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CustomRaceFormData>({
+        resolver: zodResolver(customRaceSchema),
+        defaultValues: {
+            name: initialName,
+            city: '',
+            date: '',
+            distanceKm: '',
+            elevationGain: '',
+            terrainType: 'route',
+        },
+    })
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+    const terrainType = watch('terrainType')
 
+    const onFormSubmit = (data: CustomRaceFormData) => {
         const race: CustomRaceData = {
             id: `custom-${Date.now()}`,
-            name,
-            city,
-            date,
-            distance_km: parseFloat(distanceKm),
-            elevation_gain_m: elevationGain ? parseInt(elevationGain) : 0,
-            elevation_loss_m: elevationGain ? parseInt(elevationGain) : 0,
-            terrain_type: terrainType,
+            name: data.name,
+            city: data.city || '',
+            date: data.date,
+            distance_km: parseFloat(data.distanceKm),
+            elevation_gain_m: data.elevationGain ? parseInt(data.elevationGain) : 0,
+            elevation_loss_m: data.elevationGain ? parseInt(data.elevationGain) : 0,
+            terrain_type: data.terrainType,
             difficulty: 'moyen',
             country: 'France',
             key_points: [],
@@ -69,17 +76,16 @@ export default function CustomRaceForm({ initialName, onSubmit, onCancel }: Cust
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
                 <div>
                     <Label className="text-sm">Nom de la course *</Label>
                     <Input
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        {...register('name')}
                         placeholder="Ex: Marathon de Saumur"
                         className="mt-1 rounded-xl"
-                        required
                     />
+                    {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -87,8 +93,7 @@ export default function CustomRaceForm({ initialName, onSubmit, onCancel }: Cust
                         <Label className="text-sm">Ville</Label>
                         <Input
                             type="text"
-                            value={city}
-                            onChange={(e) => setCity(e.target.value)}
+                            {...register('city')}
                             placeholder="Ex: Saumur"
                             className="mt-1 rounded-xl"
                         />
@@ -97,12 +102,11 @@ export default function CustomRaceForm({ initialName, onSubmit, onCancel }: Cust
                         <Label className="text-sm">Date *</Label>
                         <Input
                             type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            {...register('date')}
                             min={new Date().toISOString().split('T')[0]}
                             className="mt-1 rounded-xl"
-                            required
                         />
+                        {errors.date && <p className="text-xs text-destructive mt-1">{errors.date.message}</p>}
                     </div>
                 </div>
 
@@ -112,19 +116,17 @@ export default function CustomRaceForm({ initialName, onSubmit, onCancel }: Cust
                         <Input
                             type="number"
                             step="0.1"
-                            value={distanceKm}
-                            onChange={(e) => setDistanceKm(e.target.value)}
+                            {...register('distanceKm')}
                             placeholder="42.195"
                             className="mt-1 rounded-xl"
-                            required
                         />
+                        {errors.distanceKm && <p className="text-xs text-destructive mt-1">{errors.distanceKm.message}</p>}
                     </div>
                     <div>
                         <Label className="text-sm">D&eacute;nivel&eacute;+ (m)</Label>
                         <Input
                             type="number"
-                            value={elevationGain}
-                            onChange={(e) => setElevationGain(e.target.value)}
+                            {...register('elevationGain')}
                             placeholder="150"
                             className="mt-1 rounded-xl"
                         />
@@ -142,7 +144,7 @@ export default function CustomRaceForm({ initialName, onSubmit, onCancel }: Cust
                             <button
                                 key={type.value}
                                 type="button"
-                                onClick={() => setTerrainType(type.value)}
+                                onClick={() => setValue('terrainType', type.value)}
                                 className={`p-3 rounded-xl border-2 transition-all text-center ${
                                     terrainType === type.value
                                         ? 'border-primary bg-primary/5'

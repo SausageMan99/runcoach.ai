@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Heart } from 'lucide-react'
+import { toast } from 'sonner'
 import type { CheckInResult } from '@/types'
 
 interface DailyCheckInCardProps {
@@ -38,13 +39,15 @@ export default function DailyCheckInCard({
                     sessionDay: nextSessionDay,
                 }),
             })
-            const data = await res.json()
-            if (res.ok) {
-                setResult(data)
-                setDone(true)
+            if (!res.ok) {
+                toast.error('Impossible de sauvegarder le check-in')
+                return
             }
+            const data = await res.json()
+            setResult(data)
+            setDone(true)
         } catch {
-            // Silent fail
+            toast.error('Impossible de sauvegarder le check-in')
         } finally {
             setLoading(false)
         }
@@ -113,6 +116,7 @@ export default function DailyCheckInCard({
                             key={f.value}
                             disabled={loading}
                             onClick={() => handleCheckIn(f.value)}
+                            aria-label={f.label}
                             className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${f.bg} disabled:opacity-50`}
                         >
                             <span className="text-3xl">{f.icon}</span>

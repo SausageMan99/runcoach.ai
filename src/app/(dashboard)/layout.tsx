@@ -31,8 +31,13 @@ export default function DashboardLayout({
 
     return (
         <div className="min-h-screen bg-background">
+            {/* Skip to content */}
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-xl focus:font-semibold">
+                Aller au contenu principal
+            </a>
+
             {/* Desktop Sidebar - Collapsed by default, expandable */}
-            <aside className={`hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:flex-col lg:bg-card lg:border-r lg:border-border/50 lg:shadow-sm transition-all duration-300 ${sidebarExpanded ? 'lg:w-56' : 'lg:w-[72px]'
+            <aside role="navigation" aria-label="Navigation principale" className={`hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:flex-col lg:bg-card lg:border-r lg:border-border/50 lg:shadow-sm transition-all duration-300 ${sidebarExpanded ? 'lg:w-56' : 'lg:w-[72px]'
                 }`}>
                 {/* Logo area */}
                 <div className={`flex h-16 items-center ${sidebarExpanded ? 'px-5 gap-3' : 'justify-center'} border-b border-border/50`}>
@@ -72,6 +77,7 @@ export default function DashboardLayout({
                 <div className="px-2 py-2 border-t border-border/50">
                     <button
                         onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                        aria-label={sidebarExpanded ? 'Réduire le menu' : 'Agrandir le menu'}
                         className="w-full flex items-center justify-center py-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     >
                         {sidebarExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -82,6 +88,7 @@ export default function DashboardLayout({
                 <div className={`px-2 pb-4 ${sidebarExpanded ? '' : ''}`}>
                     <Button
                         variant="ghost"
+                        aria-label="Se déconnecter"
                         className={`w-full ${sidebarExpanded ? 'justify-start gap-3 px-3' : 'justify-center px-0'} text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl`}
                         onClick={handleLogout}
                     >
@@ -92,7 +99,7 @@ export default function DashboardLayout({
             </aside>
 
             {/* Mobile Bottom Tab Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border/50 shadow-lg">
+            <nav aria-label="Navigation mobile" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border/50 shadow-lg">
                 <div className="flex items-center justify-around h-16 px-2">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href
@@ -114,7 +121,7 @@ export default function DashboardLayout({
             </nav>
 
             {/* Main Content */}
-            <main className={`transition-all duration-300 ${sidebarExpanded ? 'lg:pl-56' : 'lg:pl-[72px]'} pb-20 lg:pb-0 min-h-screen`}>
+            <main id="main-content" className={`transition-all duration-300 ${sidebarExpanded ? 'lg:pl-56' : 'lg:pl-[72px]'} pb-20 lg:pb-0 min-h-screen`}>
                 {children}
             </main>
         </div>

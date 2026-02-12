@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { User, Target, LogOut, Trash2, RefreshCw, Loader2, CheckCircle } from 'lucide-react'
+import { User, Target, LogOut, Trash2, RefreshCw, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import type { Program } from '@/types'
 
 interface SettingsClientProps {
@@ -21,14 +22,12 @@ export default function SettingsClient({ email, firstName: initialFirstName, pro
     const router = useRouter()
     const [firstName, setFirstName] = useState(initialFirstName)
     const [isSaving, setIsSaving] = useState(false)
-    const [saveSuccess, setSaveSuccess] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false)
 
     const handleSaveProfile = async () => {
         setIsSaving(true)
-        setSaveSuccess(false)
         try {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
@@ -39,11 +38,10 @@ export default function SettingsClient({ email, firstName: initialFirstName, pro
                 } else {
                     await supabase.from('profiles').insert({ id: user.id, first_name: firstName })
                 }
-                setSaveSuccess(true)
-                setTimeout(() => setSaveSuccess(false), 3000)
+                toast.success('Profil sauvegardé !')
             }
-        } catch (error) {
-            console.error('Error saving profile:', error)
+        } catch {
+            toast.error('Impossible de sauvegarder le profil')
         } finally {
             setIsSaving(false)
         }
@@ -67,8 +65,8 @@ export default function SettingsClient({ email, firstName: initialFirstName, pro
                 router.push('/')
                 router.refresh()
             }
-        } catch (error) {
-            console.error('Error deleting account:', error)
+        } catch {
+            toast.error('Impossible de supprimer le compte')
             setIsDeleting(false)
         }
     }
@@ -107,8 +105,6 @@ export default function SettingsClient({ email, firstName: initialFirstName, pro
                         <Button onClick={handleSaveProfile} disabled={isSaving} className="rounded-xl">
                             {isSaving ? (
                                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sauvegarde...</>
-                            ) : saveSuccess ? (
-                                <><CheckCircle className="w-4 h-4 mr-2" />Sauvegardé !</>
                             ) : (
                                 'Sauvegarder'
                             )}
