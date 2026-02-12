@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardClient from './dashboard-client'
-import type { Program, SessionTracking, Race, DailyCheckIn } from '@/types'
+import type { Program, SessionTracking, Race, DailyCheckIn, AdjustedSession } from '@/types'
 
 interface DashboardPageProps {
     searchParams: Promise<{ new?: string }>
@@ -37,6 +37,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     let race: Race | null = null
     let hasCheckedInToday = false
     let recentFeelings: number[] = []
+    let todayAdjustment: { feeling: number; adjustment_made: AdjustedSession | null } | null = null
+    let recentCheckIns: { feeling: number; date: string; adjustment_made: AdjustedSession | null }[] = []
 
     if (program) {
         const { data: trackingData } = await supabase
@@ -46,27 +48,38 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
         tracking = trackingData || []
 
-        // Check today's check-in
+        // Check today's check-in with full details
         const today = new Date().toISOString().split('T')[0]
         const { data: todayCheckIn } = await supabase
             .from('daily_check_ins')
-            .select('id')
+            .select('id, feeling, adjustment_made')
             .eq('user_id', user.id)
             .eq('date', today)
             .single()
 
         hasCheckedInToday = !!todayCheckIn
+        if (todayCheckIn) {
+            todayAdjustment = {
+                feeling: todayCheckIn.feeling as number,
+                adjustment_made: todayCheckIn.adjustment_made as AdjustedSession | null,
+            }
+        }
 
-        // Get recent check-in feelings for injury risk
-        const { data: recentCheckIns } = await supabase
+        // Get recent check-ins with adjustment details
+        const { data: recentCheckInsData } = await supabase
             .from('daily_check_ins')
-            .select('feeling')
+            .select('feeling, date, adjustment_made')
             .eq('user_id', user.id)
             .eq('program_id', program.id)
             .order('date', { ascending: false })
             .limit(7)
 
-        recentFeelings = (recentCheckIns as DailyCheckIn[] | null)?.map(c => c.feeling) || []
+        recentCheckIns = (recentCheckInsData || []).map(c => ({
+            feeling: c.feeling as number,
+            date: c.date as string,
+            adjustment_made: c.adjustment_made as AdjustedSession | null,
+        }))
+        recentFeelings = recentCheckIns.map(c => c.feeling)
 
         // Fetch race if program has race_id
         if (program.race_id) {
@@ -89,6 +102,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             hasCheckedInToday={hasCheckedInToday}
             race={race}
             recentFeelings={recentFeelings}
+            todayAdjustment={todayAdjustment}
+            recentCheckIns={recentCheckIns}
         />
     )
 }

@@ -7,12 +7,20 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Clock, MapPin, Target, Zap, ChevronRight } from 'lucide-react'
-import type { Program, SessionTracking, Week } from '@/types'
+import type { Program, SessionTracking, Week, AdjustedSession } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+
+interface ProgramCheckIn {
+    session_id: string
+    feeling: number
+    adjustment_made: AdjustedSession | null
+    date: string
+}
 
 interface ProgramClientProps {
     program: Program
     tracking: SessionTracking[]
+    checkIns?: ProgramCheckIn[]
 }
 
 const dayOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -27,7 +35,7 @@ function getSessionColor(sessionType: string | undefined): string {
     return 'border-border/50'
 }
 
-export default function ProgramClient({ program, tracking: initialTracking }: ProgramClientProps) {
+export default function ProgramClient({ program, tracking: initialTracking, checkIns = [] }: ProgramClientProps) {
     const [tracking, setTracking] = useState<SessionTracking[]>(initialTracking)
     const [notes, setNotes] = useState<Record<string, string>>({})
     const [expandedSession, setExpandedSession] = useState<string | null>(null)
@@ -77,6 +85,11 @@ export default function ProgramClient({ program, tracking: initialTracking }: Pr
 
     const getSessionNotes = (weekNumber: number, day: string) => {
         return tracking.find(t => t.week_number === weekNumber && t.session_day === day)?.notes || ''
+    }
+
+    const getCheckInForSession = (weekNumber: number, day: string) => {
+        const sessionId = `${weekNumber}-${day}`
+        return checkIns.find(c => c.session_id === sessionId) || null
     }
 
     const getWeekProgress = (week: Week) => {
@@ -192,6 +205,8 @@ export default function ProgramClient({ program, tracking: initialTracking }: Pr
                                     const sessionNotes = getSessionNotes(selectedWeekData.week_number, dayName)
                                     const noteKey = `${selectedWeekData.week_number}-${dayName}`
                                     const isExpanded = expandedSession === noteKey
+                                    const checkIn = getCheckInForSession(selectedWeekData.week_number, dayName)
+                                    const hasAdjustment = checkIn?.adjustment_made != null
 
                                     return (
                                         <div
@@ -217,6 +232,15 @@ export default function ProgramClient({ program, tracking: initialTracking }: Pr
                                                         {session.rest_day && (
                                                             <span className="text-sm text-muted-foreground">- Repos</span>
                                                         )}
+                                                        {hasAdjustment && (
+                                                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                                                                checkIn!.adjustment_made!.intensity_reduction === 100
+                                                                    ? 'bg-destructive/15 text-destructive'
+                                                                    : 'bg-warning/15 text-warning'
+                                                            }`}>
+                                                                {checkIn!.adjustment_made!.intensity_reduction === 100 ? 'Repos' : 'Ajusté'}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     {!session.rest_day && (
                                                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -231,6 +255,23 @@ export default function ProgramClient({ program, tracking: initialTracking }: Pr
 
                                             {isExpanded && !session.rest_day && (
                                                 <div className="px-4 pb-4 space-y-3 animate-fade-in">
+                                                    {hasAdjustment && (
+                                                        <div className={`p-3 rounded-xl text-sm ${
+                                                            checkIn!.adjustment_made!.intensity_reduction === 100
+                                                                ? 'bg-destructive/10 border border-destructive/20'
+                                                                : 'bg-warning/10 border border-warning/20'
+                                                        }`}>
+                                                            <p className="font-medium">
+                                                                {checkIn!.adjustment_made!.intensity_reduction === 100 ? '🛑' : '⚠️'}{' '}
+                                                                {checkIn!.adjustment_made!.message}
+                                                            </p>
+                                                            {checkIn!.adjustment_made!.intensity_reduction !== 100 && (
+                                                                <p className="text-muted-foreground mt-1">
+                                                                    {checkIn!.adjustment_made!.original_type} → {checkIn!.adjustment_made!.adjusted_type}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     <div className="bg-muted/30 p-3 rounded-xl space-y-2 text-sm">
                                                         {session.pace_target && <p><strong>Allure :</strong> {session.pace_target}</p>}
                                                         {session.workout_structure && <p><strong>Structure :</strong> {session.workout_structure}</p>}

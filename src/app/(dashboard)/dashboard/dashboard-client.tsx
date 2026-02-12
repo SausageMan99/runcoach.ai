@@ -6,12 +6,18 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ArrowRight, Flame, Clock, MapPin } from 'lucide-react'
-import type { Program, SessionTracking, Race } from '@/types'
+import type { Program, SessionTracking, Race, AdjustedSession } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import DailyCheckInCard from '@/components/dashboard/daily-check-in-card'
 import RaceCountdownCard from '@/components/dashboard/race-countdown-card'
 import InjuryRiskWidget from '@/components/dashboard/injury-risk-widget'
 import { calculateInjuryRisk } from '@/lib/utils/injury-risk'
+
+interface RecentCheckIn {
+    feeling: number
+    date: string
+    adjustment_made: AdjustedSession | null
+}
 
 interface DashboardClientProps {
     firstName: string
@@ -21,6 +27,8 @@ interface DashboardClientProps {
     hasCheckedInToday?: boolean
     race?: Race | null
     recentFeelings?: number[]
+    todayAdjustment?: { feeling: number; adjustment_made: AdjustedSession | null } | null
+    recentCheckIns?: RecentCheckIn[]
 }
 
 const dayOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -40,6 +48,8 @@ export default function DashboardClient({
     hasCheckedInToday = false,
     race = null,
     recentFeelings = [],
+    todayAdjustment = null,
+    recentCheckIns = [],
 }: DashboardClientProps) {
     const [tracking, setTracking] = useState<SessionTracking[]>(initialTracking)
     const [showWelcome, setShowWelcome] = useState(isNew)
@@ -208,6 +218,25 @@ export default function DashboardClient({
                 {/* Today's Session Card */}
                 {nextSession && (
                     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-moss-light/5 overflow-hidden">
+                        {/* Adjustment banner */}
+                        {todayAdjustment?.adjustment_made && (
+                            <div className={`px-4 py-2.5 text-sm font-medium flex items-center gap-2 ${
+                                todayAdjustment.adjustment_made.intensity_reduction === 100
+                                    ? 'bg-destructive/10 text-destructive border-b border-destructive/20'
+                                    : 'bg-warning/10 text-warning border-b border-warning/20'
+                            }`}>
+                                <span>{todayAdjustment.adjustment_made.intensity_reduction === 100 ? '🛑' : '⚠️'}</span>
+                                {todayAdjustment.adjustment_made.intensity_reduction === 100
+                                    ? 'Repos recommandé aujourd\'hui'
+                                    : `Séance allégée — ${todayAdjustment.adjustment_made.adjusted_type}`
+                                }
+                            </div>
+                        )}
+                        {todayAdjustment && !todayAdjustment.adjustment_made && todayAdjustment.feeling === 1 && (
+                            <div className="px-4 py-2.5 text-sm font-medium flex items-center gap-2 bg-success/10 text-success border-b border-success/20">
+                                <span>💪</span> En pleine forme !
+                            </div>
+                        )}
                         <CardContent className="pt-6">
                             <div className="flex items-start justify-between">
                                 <div className="space-y-3">
@@ -290,6 +319,84 @@ export default function DashboardClient({
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Recent Check-ins History */}
+                {recentCheckIns.length > 0 && (
+                    <Card>
+                        <CardContent className="pt-6">
+                            <h3 className="font-semibold mb-4">Tes derniers check-ins</h3>
+                            <div className="flex items-center justify-between gap-2">
+                                {recentCheckIns.slice().reverse().map((checkIn, i) => {
+                                    const date = new Date(checkIn.date)
+                                    const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3)
+                                    const isRest = checkIn.adjustment_made?.intensity_reduction === 100
+                                    const isAdjusted = checkIn.adjustment_made && !isRest
+
+                                    return (
+                                        <div key={i} className="flex flex-col items-center gap-1.5 group relative">
+                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all cursor-default ${
+                                                checkIn.feeling === 1
+                                                    ? 'bg-success/15 text-success border border-success/30'
+                                                    : checkIn.feeling === 2
+                                                        ? 'bg-warning/15 text-warning border border-warning/30'
+                                                        : 'bg-destructive/15 text-destructive border border-destructive/30'
+                                            }`}>
+                                                {checkIn.feeling === 1 ? '💪' : checkIn.feeling === 2 ? '😴' : '🤕'}
+                                            </div>
+                                            <span className="text-[10px] text-muted-foreground">{dayLabel}</span>
+                                            {(isAdjusted || isRest) && (
+                                                <div className={`w-1.5 h-1.5 rounded-full ${isRest ? 'bg-destructive' : 'bg-warning'}`} />
+                                            )}
+                                            {/* Tooltip on hover */}
+                                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-card border border-border shadow-lg rounded-xl px-3 py-2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                                                {checkIn.feeling === 1 ? 'En forme' : checkIn.feeling === 2 ? 'Fatigué' : 'Très fatigué'}
+                                                {isAdjusted && <span className="block text-warning">{checkIn.adjustment_made!.adjusted_type}</span>}
+                                                {isRest && <span className="block text-destructive">Repos forcé</span>}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Volume Trend — last 4 weeks */}
+                {program && (() => {
+                    const startIdx = Math.max(0, currentWeek - 4)
+                    const trendWeeks = program.program_data.weeks.slice(startIdx, currentWeek)
+                    const maxVolume = Math.max(...trendWeeks.map(w => w.total_volume_km || 0), 1)
+
+                    return trendWeeks.length > 1 ? (
+                        <Card>
+                            <CardContent className="pt-6">
+                                <h3 className="font-semibold mb-4">Volume récent</h3>
+                                <div className="flex items-end gap-3 h-24">
+                                    {trendWeeks.map((week) => {
+                                        const volume = week.total_volume_km || 0
+                                        const heightPct = maxVolume > 0 ? (volume / maxVolume) * 100 : 0
+                                        const isCurrent = week.week_number === currentWeek
+
+                                        return (
+                                            <div key={week.week_number} className="flex-1 flex flex-col items-center gap-1">
+                                                <span className="text-xs text-muted-foreground font-medium">{volume}km</span>
+                                                <div
+                                                    className={`w-full rounded-t-lg transition-all ${
+                                                        isCurrent ? 'bg-primary' : 'bg-primary/30'
+                                                    }`}
+                                                    style={{ height: `${Math.max(heightPct, 8)}%` }}
+                                                />
+                                                <span className={`text-[10px] ${isCurrent ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                                                    S{week.week_number}
+                                                </span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : null
+                })()}
 
                 {/* Injury Risk */}
                 {injuryRisk && <InjuryRiskWidget risk={injuryRisk} />}

@@ -81,10 +81,19 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
         weeksAvailable,
     })
 
+    // Dynamic model selection based on program length
+    // Haiku 3.5 max output is ~8192 tokens — insufficient for >10 weeks of JSON
+    const model = weeksAvailable > 10
+        ? 'claude-sonnet-4-5-20250929'
+        : 'claude-3-5-haiku-20241022'
+    const maxTokens = weeksAvailable > 10 ? 16384 : 8000
+
+    console.log(`Generating ${weeksAvailable}-week program with ${model} (max ${maxTokens} tokens)`)
+
     try {
         const message = await anthropic.messages.create({
-            model: 'claude-3-5-haiku-20241022',
-            max_tokens: 8000,
+            model,
+            max_tokens: maxTokens,
             messages: [
                 {
                     role: 'user',
@@ -116,6 +125,12 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
             throw new Error('Invalid program structure: missing weeks array')
         }
 
+        // Validate week count — critical for long programs
+        if (programData.weeks.length < weeksAvailable) {
+            console.warn(`Only ${programData.weeks.length}/${weeksAvailable} weeks generated — program is incomplete`)
+            throw new Error('Incomplete program')
+        }
+
         // Validate sessions per week count
         for (const week of programData.weeks) {
             const trainingSessions = week.sessions.filter(s => !s.rest_day).length
@@ -132,9 +147,9 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
     } catch (error) {
         console.error('Error generating program:', error)
 
-        // If it's a parsing error, retry once
-        if (error instanceof SyntaxError) {
-            console.log('JSON parsing failed, attempting retry...')
+        // Retry once on parsing errors or incomplete programs
+        if (error instanceof SyntaxError || (error instanceof Error && error.message === 'Incomplete program')) {
+            console.log('Program generation issue, attempting retry...')
             return retryGeneration(input, weeksAvailable)
         }
 
@@ -143,14 +158,20 @@ export async function generateProgram(input: GenerateProgramInput): Promise<Prog
 }
 
 async function retryGeneration(input: GenerateProgramInput, weeksAvailable: number): Promise<ProgramData> {
+    // Always use Sonnet for retry to maximize token budget
+    const model = 'claude-sonnet-4-5-20250929'
+    const maxTokens = 16384
+
+    console.log(`Retrying with ${model} (${maxTokens} tokens)`)
+
     const prompt = programGenerationPrompt({
         ...input,
         weeksAvailable,
-    }) + '\n\nIMPORTANT: Assure-toi de retourner un JSON valide et complet.'
+    }) + `\n\nIMPORTANT: Assure-toi de retourner un JSON valide et complet avec EXACTEMENT ${weeksAvailable} semaines.`
 
     const message = await anthropic.messages.create({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 8000,
+        model,
+        max_tokens: maxTokens,
         messages: [
             {
                 role: 'user',
@@ -167,7 +188,11 @@ async function retryGeneration(input: GenerateProgramInput, weeksAvailable: numb
     const jsonText = textContent.text.trim()
     const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-        return JSON.parse(jsonMatch[0])
+        const programData: ProgramData = JSON.parse(jsonMatch[0])
+        if (programData.weeks.length < weeksAvailable) {
+            console.warn(`Retry: only ${programData.weeks.length}/${weeksAvailable} weeks generated`)
+        }
+        return programData
     }
 
     throw new Error('Failed to parse JSON after retry')
