@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Lora } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${lora.variable} font-sans antialiased`}>
         {children}
         <Toaster richColors position="top-center" />
+        <Analytics />
       </body>
     </html>
   );
