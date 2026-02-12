@@ -20,7 +20,22 @@ export const programGenerationPrompt = (data: {
 
 PROFIL: ${data.level} | Objectif: ${data.goal} | ${data.sessionsPerWeek} séances/sem${data.referenceTime ? ` | Réf: ${data.referenceTime}` : ''}${data.injuriesNotes ? ` | Attention: ${data.injuriesNotes}` : ''}
 
-RÈGLES: Progression +10%/sem, 80% endurance 20% intensité, récup S${Math.floor(data.weeksAvailable / 2)}, affûtage 2 dernières sem.
+RÈGLES: Progression +8-10%/sem max, récup toutes les 3 semaines (semaine allégée -30%), affûtage 3 dernières semaines.
+
+PHILOSOPHIE CONSERVATIVE :
+- Ratio endurance/intensité : ${data.level === 'débutant' ? '85% endurance / 15% intensité' : '80% endurance / 20% intensité'}
+- Semaine de récupération toutes les 3 semaines (volume réduit de 30%)
+- Ne JAMAIS augmenter volume ET intensité la même semaine
+- Privilégier la régularité à la performance : mieux vaut courir 3x/sem pendant 12 sem que 5x/sem pendant 4 sem
+- Débutant : pas de fractionné avant la semaine 3, commencer par du fartlek ludique
+
+PRÉVENTION BLESSURE :
+${data.injuriesNotes ? `- BLESSURES SIGNALÉES : "${data.injuriesNotes}"
+- Si genou mentionné : éviter descentes répétées, limiter le fractionné sur dur, privilégier terrain souple
+- Si tendon d'Achille/mollet : pas de séances de côtes les 4 premières semaines, étirements excentriques recommandés
+- Si périostite/tibia : réduire volume initial de 20%, augmenter très progressivement (+5%/sem max)
+- Si douleur récurrente : inclure 1 séance cross-training (vélo/natation) en remplacement chaque semaine
+- Adapter les conseils finaux aux blessures mentionnées` : '- Aucune blessure signalée — appliquer les règles de progression standard'}
 
 RÈGLE ABSOLUE SÉANCES :
 - Le nombre de séances d'entraînement par semaine DOIT être EXACTEMENT ${data.sessionsPerWeek}.
@@ -61,13 +76,23 @@ COURSE CIBLE : ${data.raceContext.name}
 ${data.raceContext.key_points.length > 0 ? `- Points clés : ${data.raceContext.key_points.join(', ')}` : ''}
 
 RÈGLES SPÉCIFIQUES COURSE :
-- Adapte l'entraînement au terrain (${data.raceContext.terrain_type === 'trail' ? 'inclure côtes, descentes techniques, renforcement' : 'travail d\'allure spécifique'})
-${data.raceContext.elevation_gain_m > 500 ? '- Inclure des séances de dénivelé progressif' : ''}
-- Affûtage calé sur la date de course (2-3 dernières semaines)
-- Dernière sortie longue 2-3 semaines avant la course
+${data.raceContext.terrain_type === 'trail' ? `- TRAIL : Inclure des séances de côtes progressives (commencer courtes S1-4, allonger ensuite)
+- Travailler les descentes techniques (quadriceps, proprioception) 1x/semaine à partir de S4
+- Renforcement musculaire : gainage, squats, fentes 2x/semaine
+- Sortie longue en terrain vallonné avec D+ progressif` : '- ROUTE : Travail d\'allure spécifique, régularité de pace, gestion d\'effort'}
+${data.raceContext.distance_km >= 80 ? `- ULTRA : Inclure des back-to-back (2 sorties longues consécutives) toutes les 2-3 semaines
+- Intégrer de la marche active en côte dans les sorties longues
+- Travailler la nutrition en course (ravitaillement toutes les 30-45 min pendant les longues)
+- Préparer mentalement aux phases difficiles (nuit, fatigue extrême)` : ''}
+${data.raceContext.elevation_gain_m > 500 ? '- Inclure des séances de dénivelé progressif, viser 60-70% du D+ course en sortie longue max' : ''}
+${data.raceContext.typical_weather?.toLowerCase().includes('chaud') || data.raceContext.typical_weather?.toLowerCase().includes('tropical') ? `- CHALEUR : Prévoir des séances en conditions chaudes les 3 dernières semaines d'entraînement
+- Adapter les allures (+15-20 sec/km quand il fait chaud)
+- Hydrater abondamment et tester la stratégie hydratation en sortie longue` : ''}
+- Affûtage calé sur la date de course (3 dernières semaines : -20%, -40%, -60%)
+- Dernière sortie longue 3 semaines avant la course
+- Simuler les conditions de course (terrain + météo) sur les 3 dernières semaines d'entraînement spécifique
 ` : ''}IMPORTANT:
 - Génère ${data.weeksAvailable} semaines COMPLÈTES
 - EXACTEMENT ${data.sessionsPerWeek} séances d'entraînement par semaine + les jours de repos
 - Descriptions COURTES (max 50 caractères)
 - JSON UNIQUEMENT, pas de texte`
-

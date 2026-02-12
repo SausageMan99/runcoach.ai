@@ -328,25 +328,6 @@
   opacity: 0.15;
 }
 
-/* Horizontal scroll container for landing */
-.horizontal-scroll {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.horizontal-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.horizontal-scroll > section {
-  scroll-snap-align: start;
-  min-width: 100vw;
-  flex-shrink: 0;
-}
-
 /* Session type colors — nature palette */
 .session-easy { background-color: rgba(58, 125, 110, 0.1); border-color: rgba(58, 125, 110, 0.3); }
 .session-interval { background-color: rgba(193, 127, 89, 0.1); border-color: rgba(193, 127, 89, 0.3); }

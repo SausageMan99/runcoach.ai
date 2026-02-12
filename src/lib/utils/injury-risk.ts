@@ -76,15 +76,15 @@ export function calculateInjuryRisk(input: InjuryRiskInput): InjuryRiskResult {
             : 'Aucun check-in récent',
     })
 
-    // 4. Strength work missing (0-15)
-    const strengthScore = input.hasStrengthWork ? 0 : 15
+    // 4. Strength work missing (0-5)
+    const strengthScore = input.hasStrengthWork ? 0 : 5
     if (!input.hasStrengthWork) {
         recommendations.push('Ajoute du renforcement musculaire (2x/semaine)')
     }
     factors.push({
         name: 'Renforcement',
         score: strengthScore,
-        maxScore: 15,
+        maxScore: 5,
         icon: '🏋️',
         description: input.hasStrengthWork ? 'Renforcement inclus' : 'Pas de renforcement détecté',
     })

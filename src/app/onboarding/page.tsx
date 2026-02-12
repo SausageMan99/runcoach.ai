@@ -21,7 +21,7 @@ const questions = [
     {
         id: 'level',
         title: 'Quel est ton niveau en running ?',
-        subtitle: 'On adapte ton programme à ton expérience',
+        subtitle: 'On part de TON niveau réel — pas d\'estimation optimiste',
     },
     {
         id: 'goal',
@@ -31,7 +31,7 @@ const questions = [
     {
         id: 'race',
         title: 'Tu prépares une course ?',
-        subtitle: 'On adapte ton programme spécifiquement',
+        subtitle: 'On calibre sur le terrain, dénivelé et météo de TA course',
     },
     {
         id: 'targetDate',
@@ -384,9 +384,9 @@ export default function OnboardingPage() {
                         {step === 4 && (
                             <div className="space-y-3">
                                 {[
-                                    { value: 2, label: '2-3 séances/semaine', desc: 'Idéal pour débutants', icon: '🌱' },
-                                    { value: 4, label: '4 séances/semaine', desc: 'Bon équilibre effort/récup', icon: '💪' },
-                                    { value: 5, label: '5+ séances/semaine', desc: 'Pour les plus engagés', icon: '🔥' },
+                                    { value: 2, label: '2-3 séances/semaine', desc: 'Sécurité maximale — idéal pour débutants ou reprise', icon: '🌱' },
+                                    { value: 4, label: '4 séances/semaine', desc: 'Bon équilibre effort/récup — le sweet spot', icon: '💪' },
+                                    { value: 5, label: '5+ séances/semaine', desc: 'Risque blessure accru — réservé aux confirmés', icon: '🔥' },
                                 ].map((option) => (
                                     <label
                                         key={option.value}
@@ -459,7 +459,7 @@ export default function OnboardingPage() {
                                     <Label htmlFor="injuries">Blessures ou précautions (optionnel)</Label>
                                     <Textarea
                                         id="injuries"
-                                        placeholder="Ex: Douleur genou droit si je cours trop longtemps"
+                                        placeholder="Ex: Douleur genou droit après 10km, tendinite achille il y a 6 mois..."
                                         {...register('injuriesNotes')}
                                         rows={4}
                                         maxLength={500}
@@ -468,7 +468,7 @@ export default function OnboardingPage() {
                                     <p className="text-xs text-muted-foreground text-right">{formData.injuriesNotes?.length || 0}/500</p>
                                 </div>
                                 <div className="bg-accent-warm/10 border border-accent-warm/30 rounded-2xl p-4 text-sm text-foreground/80">
-                                    <strong>Important :</strong> Consulte un médecin si tu as des blessures sérieuses avant de commencer un programme.
+                                    <strong>Ces infos sont critiques</strong> — on ajuste vraiment ton programme en fonction. Consulte un médecin si tu as des blessures sérieuses.
                                 </div>
                             </div>
                         )}
