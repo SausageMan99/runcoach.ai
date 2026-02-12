@@ -14,6 +14,14 @@ export const onboardingSchema = z.object({
     injuriesNotes: z.string().max(500).optional(),
     raceId: z.string().uuid().optional(),
     raceName: z.string().max(200).optional(),
+    customRace: z.object({
+        name: z.string().min(1).max(200),
+        city: z.string().max(100).optional(),
+        date: z.string().optional(),
+        distance_km: z.number().min(0.1).max(500),
+        elevation_gain_m: z.number().min(0).max(20000).optional(),
+        terrain_type: z.enum(['route', 'trail', 'mixte']).optional(),
+    }).optional(),
 })
 
 export type OnboardingData = z.infer<typeof onboardingSchema>

@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
-import { MapPin, Mountain, Calendar } from 'lucide-react'
+import { MapPin, Mountain, Calendar, Plus } from 'lucide-react'
+import CustomRaceForm from '@/components/onboarding/custom-race-form'
 import type { Race } from '@/types'
 
 interface RaceAutocompleteProps {
@@ -17,6 +18,7 @@ export default function RaceAutocomplete({ onSelect, onClear, selectedRace }: Ra
     const [results, setResults] = useState<Race[]>([])
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [showCustomForm, setShowCustomForm] = useState(false)
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -151,9 +153,37 @@ export default function RaceAutocomplete({ onSelect, onClear, selectedRace }: Ra
                     ))}
                 </div>
             )}
-            {isOpen && results.length === 0 && query.length >= 2 && !loading && (
-                <div className="absolute z-50 w-full mt-2 bg-card border border-border/50 rounded-2xl shadow-lg p-4 text-center text-sm text-muted-foreground">
-                    Aucune course trouvée
+            {isOpen && results.length === 0 && query.length >= 2 && !loading && !showCustomForm && (
+                <div className="absolute z-50 w-full mt-2 bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden">
+                    <div className="p-4 text-center text-sm text-muted-foreground border-b border-border/30">
+                        Aucune course trouvée
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => { setShowCustomForm(true); setIsOpen(false) }}
+                        className="w-full p-4 hover:bg-muted/50 transition-colors flex items-center gap-3 text-left"
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Plus className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                            <p className="font-medium text-sm">Ma course n&apos;est pas dans la liste</p>
+                            <p className="text-xs text-muted-foreground">Entrer les détails manuellement</p>
+                        </div>
+                    </button>
+                </div>
+            )}
+            {showCustomForm && (
+                <div className="mt-3">
+                    <CustomRaceForm
+                        initialName={query}
+                        onSubmit={(customRace) => {
+                            onSelect(customRace as unknown as Race)
+                            setShowCustomForm(false)
+                            setQuery('')
+                        }}
+                        onCancel={() => setShowCustomForm(false)}
+                    />
                 </div>
             )}
         </div>

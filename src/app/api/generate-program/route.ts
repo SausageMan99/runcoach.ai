@@ -73,6 +73,20 @@ export async function POST(request: Request) {
             }
         }
 
+        // Build race context from custom race data if provided
+        if (!raceContext && data.customRace) {
+            raceContext = {
+                name: data.customRace.name,
+                distance_km: data.customRace.distance_km,
+                elevation_gain_m: data.customRace.elevation_gain_m || 0,
+                terrain_type: data.customRace.terrain_type || 'route',
+                difficulty: 'moyen' as const,
+                key_points: [] as string[],
+                typical_weather: null,
+                date: data.customRace.date || data.targetDate || null,
+            }
+        }
+
         // Generate program with Claude
         const programData = await generateProgram({
             level: data.level,

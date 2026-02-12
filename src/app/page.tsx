@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Check, X, Search, Mountain, Cloud, MapPin } from 'lucide-react'
+import { ArrowRight, Search, Mountain, Cloud, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { BetaBadge } from '@/components/landing/beta-badge'
 
 const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -57,9 +58,7 @@ export default function LandingPage() {
                 <div className="relative z-10 container mx-auto max-w-5xl">
                     <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-3xl space-y-8">
                         <motion.div variants={fadeUp} transition={{ duration: 0.5 }}>
-                            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-sm font-medium text-foreground border border-border/50">
-                                Alternative fran&ccedil;aise &agrave; Runna
-                            </span>
+                            <BetaBadge />
                         </motion.div>
                         <motion.h1 variants={fadeUp} transition={{ duration: 0.7 }} className="font-serif text-5xl sm:text-7xl lg:text-8xl leading-[1.05]">
                             Le seul coach qui s&apos;adapte{' '}
@@ -120,57 +119,6 @@ export default function LandingPage() {
                                 </motion.div>
                             ))}
                         </div>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* Comparison: Joggeur vs Runna */}
-            <section className="py-20 sm:py-28 px-6">
-                <div className="container mx-auto max-w-4xl">
-                    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger} className="space-y-10">
-                        <div className="text-center space-y-4">
-                            <motion.p variants={fadeUp} className="text-sm font-medium text-primary tracking-widest uppercase">Comparaison</motion.p>
-                            <motion.h2 variants={fadeUp} className="font-serif text-3xl sm:text-5xl">
-                                Joggeur vs Runna
-                            </motion.h2>
-                        </div>
-                        <motion.div variants={fadeUp} className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="border-b-2 border-foreground">
-                                        <th className="py-4 pr-4 text-muted-foreground font-medium text-sm w-1/2"></th>
-                                        <th className="py-4 px-4 text-center font-semibold">Joggeur</th>
-                                        <th className="py-4 pl-4 text-center font-semibold text-muted-foreground">Runna</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {[
-                                        { feature: 'Adaptation quotidienne \u00e0 la fatigue', joggeur: true, runna: false },
-                                        { feature: 'Pr\u00e9paration sp\u00e9cifique terrain + m\u00e9t\u00e9o', joggeur: true, runna: false },
-                                        { feature: 'Score de risque blessure en temps r\u00e9el', joggeur: true, runna: false },
-                                        { feature: '50+ courses fran\u00e7aises int\u00e9gr\u00e9es', joggeur: true, runna: false },
-                                        { feature: 'Approche conservative (85/15)', joggeur: true, runna: false },
-                                        { feature: 'Gratuit', joggeur: true, runna: false },
-                                    ].map((row, i) => (
-                                        <tr key={i} className="border-b border-border/50">
-                                            <td className="py-4 pr-4 text-sm sm:text-base">{row.feature}</td>
-                                            <td className="py-4 px-4 text-center">
-                                                {row.joggeur
-                                                    ? <Check className="w-5 h-5 text-success mx-auto" />
-                                                    : <X className="w-5 h-5 text-destructive mx-auto" />
-                                                }
-                                            </td>
-                                            <td className="py-4 pl-4 text-center">
-                                                {row.runna
-                                                    ? <Check className="w-5 h-5 text-success mx-auto" />
-                                                    : <X className="w-5 h-5 text-muted-foreground/40 mx-auto" />
-                                                }
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </motion.div>
                     </motion.div>
                 </div>
             </section>
@@ -298,29 +246,26 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Social proof */}
-            <section className="py-20 sm:py-28 px-6 relative overflow-hidden">
-                <div className="blob-bg w-56 sm:w-[350px] h-56 sm:h-[350px] bg-accent-warm/15 bottom-[10%] left-[10%]" style={{ animationDelay: '2s' }} />
-                <div className="container mx-auto max-w-5xl relative z-10">
-                    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="space-y-12">
-                        <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 sm:gap-8">
+            {/* Transparence */}
+            <section className="py-16 sm:py-20 px-6">
+                <div className="container mx-auto max-w-5xl">
+                    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger} className="space-y-8">
+                        <motion.h3 variants={fadeUp} className="font-serif text-2xl sm:text-3xl text-center">
+                            Important &agrave; savoir
+                        </motion.h3>
+                        <motion.div variants={fadeUp} className="grid sm:grid-cols-3 gap-4 sm:gap-6">
                             {[
-                                { value: '500+', label: 'Runners actifs' },
-                                { value: '2 000+', label: 'Programmes g\u00e9n\u00e9r\u00e9s' },
-                                { value: '98%', label: 'Taux de satisfaction' },
-                            ].map((stat) => (
-                                <div key={stat.label} className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-card border border-border/50 text-center shadow-sm">
-                                    <p className="font-serif text-2xl sm:text-5xl text-primary">{stat.value}</p>
-                                    <p className="text-xs sm:text-base text-muted-foreground mt-1 sm:mt-2">{stat.label}</p>
+                                { icon: '🚧', title: 'Prototype actif', desc: 'D\u00e9veloppement en cours. Des bugs sont possibles.' },
+                                { icon: '🏃', title: 'Courses limit\u00e9es', desc: '~50 courses FR index\u00e9es. Option "course personnalis\u00e9e" disponible.' },
+                                { icon: '💬', title: 'Tes retours comptent', desc: 'Chaque feedback aide \u00e0 am\u00e9liorer le produit.' },
+                            ].map((item) => (
+                                <div key={item.title} className="p-5 sm:p-6 rounded-2xl bg-card border border-border/50 shadow-sm">
+                                    <div className="text-2xl mb-3">{item.icon}</div>
+                                    <h4 className="font-semibold mb-1">{item.title}</h4>
+                                    <p className="text-sm text-muted-foreground">{item.desc}</p>
                                 </div>
                             ))}
                         </motion.div>
-                        <motion.blockquote variants={fadeUp} className="max-w-2xl mx-auto text-center">
-                            <p className="font-serif text-lg sm:text-2xl text-foreground/80 italic leading-relaxed">
-                                &ldquo;Depuis Joggeur, je ne cours plus au feeling. Chaque s&eacute;ance a un objectif. J&apos;ai battu mon record sur 10K en 8 semaines.&rdquo;
-                            </p>
-                            <footer className="mt-4 text-muted-foreground">- Marie, 34 ans, semi-marathonienne</footer>
-                        </motion.blockquote>
                     </motion.div>
                 </div>
             </section>

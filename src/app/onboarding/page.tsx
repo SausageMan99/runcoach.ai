@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,9 +10,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ArrowLeft, ArrowRight, Zap } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Zap, AlertCircle } from 'lucide-react'
 import RaceAutocomplete from '@/components/onboarding/race-autocomplete'
-import type { Race } from '@/types'
+import ProgramPreview from '@/components/onboarding/program-preview'
+import InlineSignup from '@/components/onboarding/inline-signup'
+import type { Race, ProgramData } from '@/types'
 
 const STORAGE_KEY = 'runcoach_onboarding'
 
@@ -55,7 +56,6 @@ const questions = [
     },
 ]
 
-// Background color for each step
 const stepColors = [
     'from-background to-primary/5',
     'from-background to-moss-light/5',
@@ -66,13 +66,27 @@ const stepColors = [
     'from-background to-warning/5',
 ]
 
+const loadingTips = [
+    "Analyse de ton profil running...",
+    "Calcul de tes allures optimales...",
+    "Construction du plan de progression...",
+    "Répartition des séances par semaine...",
+    "Intégration des phases de récupération...",
+    "Presque prêt...",
+]
+
+type Phase = 'quiz' | 'generating' | 'preview' | 'signup'
+
 export default function OnboardingPage() {
-    const router = useRouter()
+    const [phase, setPhase] = useState<Phase>('quiz')
     const [step, setStep] = useState(0)
     const [isAnimating, setIsAnimating] = useState(false)
     const [animDir, setAnimDir] = useState<'next' | 'prev'>('next')
     const [selectedRace, setSelectedRace] = useState<Race | null>(null)
     const [wantsRace, setWantsRace] = useState<boolean | null>(null)
+    const [generatedProgram, setGeneratedProgram] = useState<ProgramData | null>(null)
+    const [generationError, setGenerationError] = useState<string | null>(null)
+    const [currentTip, setCurrentTip] = useState(0)
 
     const {
         register,
@@ -109,8 +123,19 @@ export default function OnboardingPage() {
 
     // Save data to localStorage on change
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
-    }, [formData])
+        if (phase === 'quiz') {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
+        }
+    }, [formData, phase])
+
+    // Rotate loading tips
+    useEffect(() => {
+        if (phase !== 'generating') return
+        const interval = setInterval(() => {
+            setCurrentTip((prev) => (prev + 1) % loadingTips.length)
+        }, 3000)
+        return () => clearInterval(interval)
+    }, [phase])
 
     const progress = ((step + 1) / questions.length) * 100
 
@@ -143,9 +168,23 @@ export default function OnboardingPage() {
         }
     }
 
-    const handleRaceSelect = (race: Race) => {
+    const handleRaceSelect = (race: Race & { custom?: boolean }) => {
         setSelectedRace(race)
-        setValue('raceId', race.id)
+        if (race.custom) {
+            // Custom race: don't set raceId (not in DB), set customRace data
+            setValue('raceId', undefined)
+            setValue('customRace', {
+                name: race.name,
+                city: race.city || undefined,
+                date: race.date,
+                distance_km: race.distance_km,
+                elevation_gain_m: race.elevation_gain_m || undefined,
+                terrain_type: race.terrain_type || undefined,
+            })
+        } else {
+            setValue('raceId', race.id)
+            setValue('customRace', undefined)
+        }
         setValue('raceName', race.name)
         setValue('targetDate', race.date)
         setValue('hasTargetDate', true)
@@ -155,13 +194,132 @@ export default function OnboardingPage() {
         setSelectedRace(null)
         setValue('raceId', undefined)
         setValue('raceName', undefined)
+        setValue('customRace', undefined)
     }
 
-    const onSubmit = () => {
+    const onSubmit = async () => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
-        router.push('/signup?redirect=/generate')
+        setPhase('generating')
+        setGenerationError(null)
+
+        try {
+            const response = await fetch('/api/generate-program-preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Erreur lors de la génération')
+            }
+
+            setGeneratedProgram(result.program)
+            setPhase('preview')
+            localStorage.removeItem(STORAGE_KEY)
+        } catch (err) {
+            console.error('Generation error:', err)
+            setGenerationError(err instanceof Error ? err.message : 'Une erreur est survenue. Réessaie.')
+            setPhase('quiz')
+        }
     }
 
+    // Generating phase
+    if (phase === 'generating') {
+        return (
+            <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+                <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-accent-warm/5 rounded-full blur-3xl" />
+
+                <header className="relative z-10 p-4 sm:p-6">
+                    <Link href="/">
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
+                    </Link>
+                </header>
+
+                <main className="relative z-10 flex-1 flex items-center justify-center p-6">
+                    <div className="w-full max-w-md text-center space-y-8">
+                        <div className="relative w-40 h-40 mx-auto">
+                            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-[concentric-pulse_3s_ease-out_infinite]" />
+                            <div className="absolute inset-4 rounded-full border-2 border-primary/30 animate-[concentric-pulse_3s_ease-out_0.5s_infinite]" />
+                            <div className="absolute inset-8 rounded-full border-2 border-primary/40 animate-[concentric-pulse_3s_ease-out_1s_infinite]" />
+                            <div className="absolute inset-12 rounded-full bg-primary/10 animate-pulse-soft flex items-center justify-center">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-moss-light flex items-center justify-center">
+                                    <span className="text-3xl">🏃</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <h2 className="font-serif text-3xl">G&eacute;n&eacute;ration en cours</h2>
+                            <p className="text-muted-foreground transition-all duration-500 min-h-[1.5rem]">
+                                {loadingTips[currentTip]}
+                            </p>
+                        </div>
+
+                        <div className="w-48 h-1.5 mx-auto rounded-full bg-muted overflow-hidden">
+                            <div className="h-full w-1/2 rounded-full gradient-accent animate-[shimmer_1.5s_ease-in-out_infinite]" />
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                            Cela peut prendre jusqu&apos;&agrave; 30 secondes
+                        </p>
+                    </div>
+                </main>
+            </div>
+        )
+    }
+
+    // Preview phase
+    if (phase === 'preview' && generatedProgram) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col">
+                <header className="p-4 sm:p-6">
+                    <Link href="/">
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
+                    </Link>
+                </header>
+
+                <main className="flex-1 p-4 sm:p-6 pb-12">
+                    <ProgramPreview
+                        program={generatedProgram}
+                        onSignup={() => setPhase('signup')}
+                    />
+                </main>
+
+                <footer className="p-4 text-center text-sm text-muted-foreground">
+                    &copy; {new Date().getFullYear()} Joggeur
+                </footer>
+            </div>
+        )
+    }
+
+    // Signup phase
+    if (phase === 'signup' && generatedProgram) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col">
+                <header className="p-4 sm:p-6">
+                    <Link href="/">
+                        <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
+                    </Link>
+                </header>
+
+                <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
+                    <InlineSignup
+                        programData={generatedProgram}
+                        onboardingData={formData}
+                    />
+                </main>
+
+                <footer className="p-4 text-center text-sm text-muted-foreground">
+                    &copy; {new Date().getFullYear()} Joggeur
+                </footer>
+            </div>
+        )
+    }
+
+    // Quiz phase (default)
     return (
         <div className={`min-h-screen bg-gradient-to-br ${stepColors[step]} transition-colors duration-700 flex flex-col`}>
             {/* Header */}
@@ -192,6 +350,23 @@ export default function OnboardingPage() {
                         : 'opacity-0 -translate-x-8'
                     : 'opacity-100 translate-x-0'
                     }`}>
+
+                    {/* Generation error */}
+                    {generationError && (
+                        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm text-destructive font-medium">{generationError}</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setGenerationError(null)}
+                                    className="text-xs text-muted-foreground hover:text-foreground mt-1"
+                                >
+                                    Fermer
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Question header */}
                     <div className="text-center mb-10 space-y-3">
@@ -499,7 +674,7 @@ export default function OnboardingPage() {
 
             {/* Footer */}
             <footer className="p-4 text-center text-sm text-muted-foreground">
-                © {new Date().getFullYear()} Joggeur
+                &copy; {new Date().getFullYear()} Joggeur
             </footer>
         </div>
     )
