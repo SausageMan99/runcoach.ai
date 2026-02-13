@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ArrowRight, Clock, MapPin } from 'lucide-react'
+import { ArrowRight, Flame, Clock, MapPin } from 'lucide-react'
 import type { Program, SessionTracking, Race, AdjustedSession } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -41,10 +41,6 @@ function getGreeting(): string {
     return 'Bonsoir'
 }
 
-function getDayName(): string {
-    return new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-
 export default function DashboardClient({
     firstName,
     program,
@@ -77,16 +73,6 @@ export default function DashboardClient({
     }, 0) || 0, [program])
 
     const completedSessions = useMemo(() => tracking.filter(t => t.completed).length, [tracking])
-
-    const weekCompletedSessions = useMemo(() => {
-        return tracking.filter(t => t.week_number === currentWeek && t.completed).length
-    }, [tracking, currentWeek])
-
-    const weekTotalSessions = useMemo(() => {
-        return currentWeekData?.sessions.filter(s => !s.rest_day).length || 0
-    }, [currentWeekData])
-
-    const weekProgressPercent = weekTotalSessions > 0 ? Math.round((weekCompletedSessions / weekTotalSessions) * 100) : 0
 
     const streak = useMemo(() => {
         const completedTracking = tracking.filter(t => t.completed && t.completed_at)
@@ -124,6 +110,8 @@ export default function DashboardClient({
         return null
     }, [program, currentWeekData, currentWeek, tracking])
 
+    const reversedCheckIns = useMemo(() => recentCheckIns.slice().reverse(), [recentCheckIns])
+
     const injuryRisk = useMemo(() => {
         if (!program || !currentWeekData) return null
         const currentVolume = currentWeekData.total_volume_km || 0
@@ -147,9 +135,6 @@ export default function DashboardClient({
             restDaysThisWeek: restDays,
         })
     }, [program, currentWeekData, lastWeekData, recentFeelings])
-
-    const riskLevel = injuryRisk?.level || 'low'
-    const riskLabel = riskLevel === 'low' ? 'Faible' : riskLevel === 'medium' ? 'Modéré' : 'Élevé'
 
     const toggleSession = async (weekNumber: number, day: string, completed: boolean) => {
         if (!program) return
@@ -188,7 +173,7 @@ export default function DashboardClient({
             <div className="p-6 lg:p-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center py-20 space-y-6">
-                        <div className="w-20 h-20 bg-forest/10 rounded-xl flex items-center justify-center mx-auto border-2 border-forest/20">
+                        <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto">
                             <span className="text-4xl">🏃</span>
                         </div>
                         <div className="space-y-2">
@@ -198,7 +183,7 @@ export default function DashboardClient({
                             </p>
                         </div>
                         <Link href="/onboarding">
-                            <Button size="lg" className="rounded-lg bg-forest text-white font-semibold px-8 py-6 hover:bg-forest-dim transition-all border-2 border-forest" style={{ boxShadow: '4px 4px 0px #1A1A1A' }}>
+                            <Button size="lg" className="rounded-2xl bg-primary text-primary-foreground font-semibold px-8 py-6 shadow-lg shadow-primary/25">
                                 Créer Mon Programme
                                 <ArrowRight className="ml-2 w-4 h-4" />
                             </Button>
@@ -210,37 +195,13 @@ export default function DashboardClient({
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* STICKY TOP - Check-in quotidien */}
-            {nextSession && !hasCheckedInToday && (
-                <div className="sticky top-0 z-[100] bg-background/90 backdrop-blur-xl border-b-2 border-foreground/10 p-4" style={{ boxShadow: '0 4px 0px rgba(26, 26, 26, 0.05)' }}>
-                    <div className="container max-w-4xl mx-auto">
-                        <p className="text-sm font-medium mb-2">
-                            Aujourd&apos;hui &bull; {getDayName()}
-                        </p>
-                        <h2 className="text-2xl font-bold mb-3">
-                            {nextSession.session_type}
-                            {nextSession.duration_min && ` \u2022 ${nextSession.duration_min}min`}
-                            {nextSession.distance_km && ` \u2022 ${nextSession.distance_km}km`}
-                        </h2>
-                        <p className="text-sm text-grey mb-3">
-                            Comment te sens-tu aujourd&apos;hui ?
-                        </p>
-                        <DailyCheckInCard
-                            nextSessionWeek={nextSession.weekNumber}
-                            nextSessionDay={nextSession.day}
-                            hasCheckedInToday={hasCheckedInToday}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Welcome Banner */}
-            {showWelcome && (
-                <div className="container max-w-4xl mx-auto px-4 pt-6">
-                    <div className="bg-forest rounded-lg p-6 text-white animate-fade-in-up border-2 border-forest-dim" style={{ boxShadow: '4px 4px 0px #1A1A1A' }}>
+        <div className="p-6 lg:p-8">
+            <div className="max-w-6xl mx-auto space-y-6">
+                {/* Welcome Banner */}
+                {showWelcome && (
+                    <div className="gradient-accent rounded-3xl p-6 text-white animate-fade-in-up">
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">
+                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm">
                                 🎉
                             </div>
                             <div>
@@ -249,11 +210,8 @@ export default function DashboardClient({
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* SCROLLABLE CONTENT */}
-            <div className="container max-w-4xl mx-auto p-4 space-y-6 pb-20">
                 {/* Header motivationnel */}
                 <div className="space-y-1">
                     <h1 className="font-serif text-3xl">
@@ -264,166 +222,237 @@ export default function DashboardClient({
                     </p>
                 </div>
 
-                {/* Adjustment banner */}
-                {todayAdjustment?.adjustment_made && (
-                    <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 border-2 ${
-                        todayAdjustment.adjustment_made.intensity_reduction === 100
-                            ? 'bg-destructive/10 text-destructive border-destructive/20'
-                            : 'bg-warning/10 text-warning border-warning/20'
-                    }`}>
-                        <span>{todayAdjustment.adjustment_made.intensity_reduction === 100 ? '🛑' : '⚠️'}</span>
-                        {todayAdjustment.adjustment_made.intensity_reduction === 100
-                            ? 'Repos recommandé aujourd\'hui'
-                            : `Séance allégée — ${todayAdjustment.adjustment_made.adjusted_type}`
-                        }
-                    </div>
-                )}
-                {todayAdjustment && !todayAdjustment.adjustment_made && todayAdjustment.feeling === 1 && (
-                    <div className="px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 bg-forest/10 text-forest border-2 border-forest/20">
-                        <span>💪</span> En pleine forme !
-                    </div>
-                )}
-
-                {/* Week progress */}
-                <div className="card-brutal p-6">
-                    <div className="flex justify-between items-center mb-2">
-                        <p className="font-bold">Semaine {currentWeek}/{program.program_data.program_summary.total_weeks}</p>
-                        <p className="text-sm text-grey">{weekCompletedSessions}/{weekTotalSessions} séances</p>
-                    </div>
-                    <div className="w-full bg-grey/20 rounded-full h-3">
-                        <div
-                            className="bg-forest h-3 rounded-full transition-all"
-                            style={{ width: `${weekProgressPercent}%` }}
-                        />
-                    </div>
-                </div>
-
-                {/* Race Countdown */}
-                {race && (
-                    <div className="card-brutal p-6 bg-forest/5">
-                        <p className="text-sm font-bold mb-1">Objectif course</p>
-                        <h3 className="text-2xl font-bold mb-2">{race.name}</h3>
-                        <p className="text-grey mb-2">
-                            {race.distance_km}km &bull; {new Date(race.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </p>
-                        <p className="text-3xl font-bold font-serif text-forest">
-                            J-{Math.max(0, Math.ceil((new Date(race.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))}
-                        </p>
-                    </div>
-                )}
-
-                {/* Stats grid 2x2 */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="card-brutal p-4">
-                        <p className="text-sm text-grey mb-1">Streak</p>
-                        <p className="text-3xl font-bold">🔥 {streak}</p>
-                    </div>
-                    <div className="card-brutal p-4">
-                        <p className="text-sm text-grey mb-1">Séances</p>
-                        <p className="text-3xl font-bold">⚡ {completedSessions}/{totalSessions}</p>
-                    </div>
-                    <div className="card-brutal p-4">
-                        <p className="text-sm text-grey mb-1">Cette semaine</p>
-                        <p className="text-3xl font-bold">📊 {currentWeekData?.total_volume_km || 0} km</p>
-                    </div>
-                    <div className="card-brutal p-4">
-                        <p className="text-sm text-grey mb-1">Risque</p>
-                        <p className="text-3xl font-bold">
-                            {riskLevel === 'low' && '✅'}
-                            {riskLevel === 'medium' && '⚠️'}
-                            {riskLevel === 'high' && '🔴'}
-                            {' '}{riskLabel}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Calendar week */}
-                <div className="card-brutal p-6">
-                    <h3 className="font-bold mb-4">Calendrier semaine</h3>
-                    <div className="flex justify-between">
-                        {dayOrder.map((dayName) => {
-                            const session = currentWeekData?.sessions.find(s => s.day === dayName)
-                            const isCompleted = isSessionCompleted(currentWeek, dayName)
-                            const isRest = session?.rest_day
-                            const hasSession = session && !isRest
-
-                            return (
-                                <div key={dayName} className="flex flex-col items-center gap-2">
-                                    <p className="text-xs text-grey">{dayName.slice(0, 3)}</p>
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all border-2 ${
-                                        isCompleted
-                                            ? 'bg-forest text-white border-forest-dim'
-                                            : 'bg-grey/10 border-grey/20'
-                                    }`}>
-                                        {isCompleted ? '✓' : '○'}
-                                    </div>
-                                    {hasSession && !isCompleted && (
-                                        <Checkbox
-                                            checked={isCompleted}
-                                            onCheckedChange={(checked) => toggleSession(currentWeek, dayName, checked as boolean)}
-                                            className="w-4 h-4"
-                                            aria-label={`Marquer ${dayName} comme fait`}
-                                        />
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                {/* Today's Session Card (if check-in done) */}
-                {nextSession && hasCheckedInToday && (
-                    <div className="card-brutal p-6 bg-forest/5 border-forest/30">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-3">
-                                <p className="text-sm font-bold text-forest">
-                                    {nextSession.isNextWeek ? `Semaine prochaine - ${nextSession.day}` : `Aujourd'hui - ${nextSession.day}`}
-                                </p>
-                                <h3 className="font-serif text-2xl">{nextSession.session_type}</h3>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    {nextSession.duration_min && (
-                                        <span className="flex items-center gap-1">
-                                            <Clock className="w-4 h-4" />
-                                            {nextSession.duration_min} min
-                                        </span>
-                                    )}
-                                    {nextSession.distance_km && (
-                                        <span className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            {nextSession.distance_km} km
-                                        </span>
-                                    )}
-                                </div>
-                                {nextSession.description && (
-                                    <p className="text-sm text-muted-foreground max-w-md">{nextSession.description}</p>
-                                )}
+                {/* Today's Session Card */}
+                {nextSession && (
+                    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-moss-light/5 overflow-hidden">
+                        {/* Adjustment banner */}
+                        {todayAdjustment?.adjustment_made && (
+                            <div className={`px-4 py-2.5 text-sm font-medium flex items-center gap-2 ${
+                                todayAdjustment.adjustment_made.intensity_reduction === 100
+                                    ? 'bg-destructive/10 text-destructive border-b border-destructive/20'
+                                    : 'bg-warning/10 text-warning border-b border-warning/20'
+                            }`}>
+                                <span>{todayAdjustment.adjustment_made.intensity_reduction === 100 ? '🛑' : '⚠️'}</span>
+                                {todayAdjustment.adjustment_made.intensity_reduction === 100
+                                    ? 'Repos recommandé aujourd\'hui'
+                                    : `Séance allégée — ${todayAdjustment.adjustment_made.adjusted_type}`
+                                }
                             </div>
-                            <Button
-                                onClick={() => toggleSession(nextSession.weekNumber, nextSession.day, true)}
-                                className="rounded-lg bg-forest text-white font-semibold px-6 hover:bg-forest-dim border-2 border-forest"
-                                disabled={isSessionCompleted(nextSession.weekNumber, nextSession.day)}
-                                style={{ boxShadow: '3px 3px 0px #1A1A1A' }}
-                            >
-                                {isSessionCompleted(nextSession.weekNumber, nextSession.day) ? 'Fait !' : "C'est parti !"}
-                            </Button>
-                        </div>
-                    </div>
+                        )}
+                        {todayAdjustment && !todayAdjustment.adjustment_made && todayAdjustment.feeling === 1 && (
+                            <div className="px-4 py-2.5 text-sm font-medium flex items-center gap-2 bg-success/10 text-success border-b border-success/20">
+                                <span>💪</span> En pleine forme !
+                            </div>
+                        )}
+                        <CardContent className="pt-6">
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-3">
+                                    <p className="text-sm font-medium text-primary">
+                                        {nextSession.isNextWeek ? `Semaine prochaine - ${nextSession.day}` : `Aujourd'hui - ${nextSession.day}`}
+                                    </p>
+                                    <h3 className="font-serif text-2xl">{nextSession.session_type}</h3>
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                        {nextSession.duration_min && (
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="w-4 h-4" />
+                                                {nextSession.duration_min} min
+                                            </span>
+                                        )}
+                                        {nextSession.distance_km && (
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="w-4 h-4" />
+                                                {nextSession.distance_km} km
+                                            </span>
+                                        )}
+                                    </div>
+                                    {nextSession.description && (
+                                        <p className="text-sm text-muted-foreground max-w-md">{nextSession.description}</p>
+                                    )}
+                                </div>
+                                <Button
+                                    onClick={() => toggleSession(nextSession.weekNumber, nextSession.day, true)}
+                                    className="rounded-2xl bg-primary text-primary-foreground font-semibold px-6 shadow-md shadow-primary/20"
+                                    disabled={isSessionCompleted(nextSession.weekNumber, nextSession.day)}
+                                >
+                                    {isSessionCompleted(nextSession.weekNumber, nextSession.day) ? 'Fait !' : "C'est parti !"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
 
                 {!nextSession && (
-                    <div className="card-brutal p-6 bg-forest/5 border-forest/30 text-center">
-                        <p className="font-serif text-2xl">Programme terminé ! 🏆</p>
-                        <p className="text-muted-foreground mt-1">Bravo, tu as tout donné !</p>
-                    </div>
+                    <Card className="border-success/20 bg-success/5">
+                        <CardContent className="pt-6 text-center">
+                            <p className="font-serif text-2xl">Programme terminé ! 🏆</p>
+                            <p className="text-muted-foreground mt-1">Bravo, tu as tout donné !</p>
+                        </CardContent>
+                    </Card>
                 )}
 
-                {/* Injury Risk (detailed) */}
+                {/* Daily Check-in */}
+                {nextSession && (
+                    <DailyCheckInCard
+                        nextSessionWeek={nextSession.weekNumber}
+                        nextSessionDay={nextSession.day}
+                        hasCheckedInToday={hasCheckedInToday}
+                    />
+                )}
+
+                {/* Race Countdown */}
+                {race && <RaceCountdownCard race={race} />}
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    <Card className="bg-card">
+                        <CardContent className="pt-3 pb-3 sm:pt-5 sm:pb-5 text-center">
+                            <div className="flex items-center justify-center gap-1 mb-1">
+                                <Flame className="w-5 h-5 text-accent-warm" />
+                            </div>
+                            <p className="font-serif text-xl sm:text-2xl">{streak}</p>
+                            <p className="text-xs text-muted-foreground">Streak</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-card">
+                        <CardContent className="pt-3 pb-3 sm:pt-5 sm:pb-5 text-center">
+                            <p className="font-serif text-xl sm:text-2xl">{completedSessions}<span className="text-muted-foreground text-base">/{totalSessions}</span></p>
+                            <p className="text-xs text-muted-foreground">Séances</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-card">
+                        <CardContent className="pt-3 pb-3 sm:pt-5 sm:pb-5 text-center">
+                            <p className="font-serif text-xl sm:text-2xl">{currentWeekData?.total_volume_km || 0}</p>
+                            <p className="text-xs text-muted-foreground">Km/semaine</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Recent Check-ins History */}
+                {recentCheckIns.length > 0 && (
+                    <Card>
+                        <CardContent className="pt-6">
+                            <h3 className="font-semibold mb-4">Tes derniers check-ins</h3>
+                            <div className="flex items-center justify-between gap-2">
+                                {reversedCheckIns.map((checkIn, i) => {
+                                    const date = new Date(checkIn.date)
+                                    const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3)
+                                    const isRest = checkIn.adjustment_made?.intensity_reduction === 100
+                                    const isAdjusted = checkIn.adjustment_made && !isRest
+
+                                    return (
+                                        <div key={i} className="flex flex-col items-center gap-1.5 group relative">
+                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all cursor-default ${
+                                                checkIn.feeling === 1
+                                                    ? 'bg-success/15 text-success border border-success/30'
+                                                    : checkIn.feeling === 2
+                                                        ? 'bg-warning/15 text-warning border border-warning/30'
+                                                        : 'bg-destructive/15 text-destructive border border-destructive/30'
+                                            }`}>
+                                                {checkIn.feeling === 1 ? '💪' : checkIn.feeling === 2 ? '😴' : '🤕'}
+                                            </div>
+                                            <span className="text-[10px] text-muted-foreground">{dayLabel}</span>
+                                            {(isAdjusted || isRest) && (
+                                                <div className={`w-1.5 h-1.5 rounded-full ${isRest ? 'bg-destructive' : 'bg-warning'}`} />
+                                            )}
+                                            {/* Tooltip on hover */}
+                                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-card border border-border shadow-lg rounded-xl px-3 py-2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                                                {checkIn.feeling === 1 ? 'En forme' : checkIn.feeling === 2 ? 'Fatigué' : 'Très fatigué'}
+                                                {isAdjusted && <span className="block text-warning">{checkIn.adjustment_made!.adjusted_type}</span>}
+                                                {isRest && <span className="block text-destructive">Repos forcé</span>}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Volume Trend — last 4 weeks */}
+                {program && (() => {
+                    const startIdx = Math.max(0, currentWeek - 4)
+                    const trendWeeks = program.program_data.weeks.slice(startIdx, currentWeek)
+                    const maxVolume = Math.max(...trendWeeks.map(w => w.total_volume_km || 0), 1)
+
+                    return trendWeeks.length > 1 ? (
+                        <Card>
+                            <CardContent className="pt-6">
+                                <h3 className="font-semibold mb-4">Volume récent</h3>
+                                <div className="flex items-end gap-3 h-24">
+                                    {trendWeeks.map((week) => {
+                                        const volume = week.total_volume_km || 0
+                                        const heightPct = maxVolume > 0 ? (volume / maxVolume) * 100 : 0
+                                        const isCurrent = week.week_number === currentWeek
+
+                                        return (
+                                            <div key={week.week_number} className="flex-1 flex flex-col items-center gap-1">
+                                                <span className="text-xs text-muted-foreground font-medium">{volume}km</span>
+                                                <div
+                                                    className={`w-full rounded-t-lg transition-all ${
+                                                        isCurrent ? 'bg-primary' : 'bg-primary/30'
+                                                    }`}
+                                                    style={{ height: `${Math.max(heightPct, 8)}%` }}
+                                                />
+                                                <span className={`text-[10px] ${isCurrent ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                                                    S{week.week_number}
+                                                </span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : null
+                })()}
+
+                {/* Injury Risk */}
                 {injuryRisk && <InjuryRiskWidget risk={injuryRisk} />}
+
+                {/* Week Timeline */}
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold">Semaine {currentWeek}</h3>
+                            <span className="text-sm text-muted-foreground">{currentWeekData?.focus}</span>
+                        </div>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                            {dayOrder.map((dayName) => {
+                                const session = currentWeekData?.sessions.find(s => s.day === dayName)
+                                const isCompleted = isSessionCompleted(currentWeek, dayName)
+                                const isRest = session?.rest_day
+                                const hasSession = session && !isRest
+
+                                return (
+                                    <div key={dayName} className="flex flex-col items-center gap-2 min-w-[60px]">
+                                        <span className="text-[10px] text-muted-foreground font-medium">{dayName.slice(0, 3)}</span>
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm transition-all ${isCompleted
+                                            ? 'bg-success text-white'
+                                            : isRest
+                                                ? 'bg-muted/50 text-muted-foreground'
+                                                : hasSession
+                                                    ? 'bg-primary/10 text-primary border border-primary/20'
+                                                    : 'bg-muted/30 text-muted-foreground'
+                                            }`}>
+                                            {isCompleted ? '✓' : isRest ? '·' : hasSession ? '●' : '·'}
+                                        </div>
+                                        {hasSession && !isCompleted && (
+                                            <Checkbox
+                                                checked={isCompleted}
+                                                onCheckedChange={(checked) => toggleSession(currentWeek, dayName, checked as boolean)}
+                                                className="w-4 h-4"
+                                            />
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* View Full Program */}
                 <div className="text-center">
                     <Link href="/program">
-                        <Button variant="outline" className="rounded-lg font-semibold border-2 border-foreground/20" style={{ boxShadow: '3px 3px 0px rgba(26, 26, 26, 0.1)' }}>
+                        <Button variant="outline" className="rounded-2xl font-semibold border-border/50">
                             Voir le programme complet
                             <ArrowRight className="ml-2 w-4 h-4" />
                         </Button>
@@ -432,19 +461,21 @@ export default function DashboardClient({
 
                 {/* Tip */}
                 {program.program_data.tips && program.program_data.tips.length > 0 && (
-                    <div className="card-brutal p-6 bg-forest/5">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-forest/10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg border-2 border-forest/20">
-                                💡
+                    <Card className="bg-primary/5 border-primary/10">
+                        <CardContent className="pt-6">
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg">
+                                    💡
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-sm mb-1">Conseil du jour</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {program.program_data.tips[currentWeek % program.program_data.tips.length]}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="font-bold text-sm mb-1">Conseil du jour</p>
-                                <p className="text-sm text-muted-foreground">
-                                    {program.program_data.tips[currentWeek % program.program_data.tips.length]}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 )}
             </div>
         </div>

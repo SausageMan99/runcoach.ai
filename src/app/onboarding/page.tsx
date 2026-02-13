@@ -2,17 +2,69 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { onboardingSchema, type OnboardingData } from '@/lib/validations/schemas'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ArrowLeft, ArrowRight, Zap, AlertCircle } from 'lucide-react'
+import RaceAutocomplete from '@/components/onboarding/race-autocomplete'
 import ProgramPreview from '@/components/onboarding/program-preview'
 import InlineSignup from '@/components/onboarding/inline-signup'
-import type { ProgramData } from '@/types'
-import type { OnboardingData } from '@/lib/validations/schemas'
+import type { Race, ProgramData } from '@/types'
 
 const STORAGE_KEY = 'runcoach_onboarding'
+
+const questions = [
+    {
+        id: 'level',
+        title: 'Quel est ton niveau en running ?',
+        subtitle: 'On part de TON niveau réel — pas d\'estimation optimiste',
+    },
+    {
+        id: 'goal',
+        title: 'Quel est ton objectif ?',
+        subtitle: 'Dis-nous ce que tu veux accomplir',
+    },
+    {
+        id: 'race',
+        title: 'Tu prépares une course ?',
+        subtitle: 'On calibre sur le terrain, dénivelé et météo de TA course',
+    },
+    {
+        id: 'targetDate',
+        title: 'Quand veux-tu être prêt ?',
+        subtitle: '12-16 semaines pour un objectif ambitieux',
+    },
+    {
+        id: 'sessionsPerWeek',
+        title: 'Combien de séances par semaine ?',
+        subtitle: 'Sois réaliste avec ton emploi du temps',
+    },
+    {
+        id: 'referenceTime',
+        title: 'Un temps de référence récent ?',
+        subtitle: 'Aide l\'IA à calibrer tes allures optimales',
+    },
+    {
+        id: 'injuries',
+        title: 'Des blessures ou précautions ?',
+        subtitle: 'On prend tes contraintes en compte',
+    },
+]
+
+const stepColors = [
+    'from-background to-primary/5',
+    'from-background to-moss-light/5',
+    'from-background to-accent-warm/5',
+    'from-background to-success/5',
+    'from-background to-primary/5',
+    'from-background to-moss-light/5',
+    'from-background to-warning/5',
+]
 
 const loadingTips = [
     "Analyse de ton profil running...",
@@ -23,41 +75,58 @@ const loadingTips = [
     "Presque prêt...",
 ]
 
-const levels = [
-    { value: 'débutant', label: 'Débutant', desc: 'Je cours depuis moins de 6 mois' },
-    { value: 'intermédiaire', label: 'Intermédiaire', desc: 'Je cours régulièrement depuis 6+ mois' },
-    { value: 'avancé', label: 'Avancé', desc: 'Je cours depuis 2+ ans, compétitions régulières' },
-]
-
-const goals = [
-    { value: '10k', label: '10K', emoji: '🎯' },
-    { value: 'semi', label: 'Semi-marathon', emoji: '🏅' },
-    { value: 'marathon', label: 'Marathon', emoji: '🏆' },
-    { value: 'improve', label: 'Améliorer mon temps', emoji: '⚡' },
-]
-
-const sessionsOptions = [2, 3, 4, 5, 6]
-
-type Phase = 'step1' | 'step2' | 'generating' | 'program' | 'signup'
+type Phase = 'quiz' | 'generating' | 'preview' | 'signup'
 
 export default function OnboardingPage() {
-    const router = useRouter()
-    const [phase, setPhase] = useState<Phase>('step1')
-    const [currentTip, setCurrentTip] = useState(0)
+    const [phase, setPhase] = useState<Phase>('quiz')
+    const [step, setStep] = useState(0)
+    const [isAnimating, setIsAnimating] = useState(false)
+    const [animDir, setAnimDir] = useState<'next' | 'prev'>('next')
+    const [selectedRace, setSelectedRace] = useState<Race | null>(null)
+    const [wantsRace, setWantsRace] = useState<boolean | null>(null)
     const [generatedProgram, setGeneratedProgram] = useState<ProgramData | null>(null)
     const [generationError, setGenerationError] = useState<string | null>(null)
+    const [currentTip, setCurrentTip] = useState(0)
 
-    // Step 1 fields
-    const [level, setLevel] = useState<string>('')
-    const [goalType, setGoalType] = useState<string>('')
-    const [sessionsPerWeek, setSessionsPerWeek] = useState<number>(3)
-    const [hasTargetDate, setHasTargetDate] = useState(false)
-    const [targetDate, setTargetDate] = useState<string>('')
-    const [hasReferenceTime, setHasReferenceTime] = useState(false)
-    const [referenceTime, setReferenceTime] = useState<string>('')
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        trigger,
+        formState: { errors }
+    } = useForm<OnboardingData>({
+        resolver: zodResolver(onboardingSchema),
+        defaultValues: {
+            hasTargetDate: true,
+            hasReferenceTime: true,
+            sessionsPerWeek: 3,
+        }
+    })
 
-    // Step 2 fields
-    const [injuriesNotes, setInjuriesNotes] = useState<string>('')
+    const formData = watch()
+
+    // Load saved data from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved)
+                Object.entries(parsed).forEach(([key, value]) => {
+                    setValue(key as keyof OnboardingData, value as OnboardingData[keyof OnboardingData])
+                })
+            } catch {
+                // Invalid data, ignore
+            }
+        }
+    }, [setValue])
+
+    // Save data to localStorage on change
+    useEffect(() => {
+        if (phase === 'quiz') {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
+        }
+    }, [formData, phase])
 
     // Rotate loading tips
     useEffect(() => {
@@ -68,33 +137,68 @@ export default function OnboardingPage() {
         return () => clearInterval(interval)
     }, [phase])
 
-    const goalLabel = (gt: string) => {
-        switch (gt) {
-            case '10k': return 'Finir mon premier 10K'
-            case 'semi': return 'Semi-marathon (21K)'
-            case 'marathon': return 'Marathon (42K)'
-            case 'improve': return 'Améliorer mon temps de course'
-            default: return 'Finir mon premier 10K'
+    const progress = ((step + 1) / questions.length) * 100
+
+    const goNext = async () => {
+        let isValid = true
+        if (step === 0) isValid = await trigger('level')
+        if (step === 1) isValid = await trigger(['goal', 'goalType'])
+        if (step === 4) isValid = await trigger('sessionsPerWeek')
+
+        if (!isValid) return
+
+        if (step < questions.length - 1) {
+            setAnimDir('next')
+            setIsAnimating(true)
+            setTimeout(() => {
+                setStep(step + 1)
+                setIsAnimating(false)
+            }, 200)
         }
     }
 
-    const canProceedStep1 = level && goalType
+    const goBack = () => {
+        if (step > 0) {
+            setAnimDir('prev')
+            setIsAnimating(true)
+            setTimeout(() => {
+                setStep(step - 1)
+                setIsAnimating(false)
+            }, 200)
+        }
+    }
 
-    const buildOnboardingData = (): OnboardingData => ({
-        level: level as OnboardingData['level'],
-        goal: goalLabel(goalType),
-        goalType: goalType as OnboardingData['goalType'],
-        sessionsPerWeek,
-        hasTargetDate,
-        targetDate: hasTargetDate ? targetDate : undefined,
-        hasReferenceTime,
-        referenceTime: hasReferenceTime ? referenceTime : undefined,
-        injuriesNotes: injuriesNotes || undefined,
-    })
+    const handleRaceSelect = (race: Race & { custom?: boolean }) => {
+        setSelectedRace(race)
+        if (race.custom) {
+            // Custom race: don't set raceId (not in DB), set customRace data
+            setValue('raceId', undefined)
+            setValue('customRace', {
+                name: race.name,
+                city: race.city || undefined,
+                date: race.date,
+                distance_km: race.distance_km,
+                elevation_gain_m: race.elevation_gain_m || undefined,
+                terrain_type: race.terrain_type || undefined,
+            })
+        } else {
+            setValue('raceId', race.id)
+            setValue('customRace', undefined)
+        }
+        setValue('raceName', race.name)
+        setValue('targetDate', race.date)
+        setValue('hasTargetDate', true)
+    }
 
-    const generateProgram = async () => {
-        const data = buildOnboardingData()
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    const handleRaceClear = () => {
+        setSelectedRace(null)
+        setValue('raceId', undefined)
+        setValue('raceName', undefined)
+        setValue('customRace', undefined)
+    }
+
+    const onSubmit = async () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
         setPhase('generating')
         setGenerationError(null)
 
@@ -102,7 +206,7 @@ export default function OnboardingPage() {
             const response = await fetch('/api/generate-program-preview', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify(formData),
             })
 
             const result = await response.json()
@@ -112,19 +216,22 @@ export default function OnboardingPage() {
             }
 
             setGeneratedProgram(result.program)
-            setPhase('program')
+            setPhase('preview')
             localStorage.removeItem(STORAGE_KEY)
         } catch (err) {
             console.error('Generation error:', err)
             setGenerationError(err instanceof Error ? err.message : 'Une erreur est survenue. Réessaie.')
-            setPhase('step2')
+            setPhase('quiz')
         }
     }
 
     // Generating phase
     if (phase === 'generating') {
         return (
-            <div className="min-h-screen bg-background flex flex-col relative overflow-hidden topo-pattern">
+            <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+                <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-accent-warm/5 rounded-full blur-3xl" />
+
                 <header className="relative z-10 p-4 sm:p-6">
                     <Link href="/">
                         <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
@@ -134,11 +241,11 @@ export default function OnboardingPage() {
                 <main className="relative z-10 flex-1 flex items-center justify-center p-6">
                     <div className="w-full max-w-md text-center space-y-8">
                         <div className="relative w-40 h-40 mx-auto">
-                            <div className="absolute inset-0 rounded-full border-2 border-forest/20 animate-[concentric-pulse_3s_ease-out_infinite]" />
-                            <div className="absolute inset-4 rounded-full border-2 border-forest/30 animate-[concentric-pulse_3s_ease-out_0.5s_infinite]" />
-                            <div className="absolute inset-8 rounded-full border-2 border-forest/40 animate-[concentric-pulse_3s_ease-out_1s_infinite]" />
-                            <div className="absolute inset-12 rounded-full bg-forest/10 animate-pulse-soft flex items-center justify-center">
-                                <div className="w-16 h-16 rounded-full bg-forest flex items-center justify-center border-2 border-forest-dim" style={{ boxShadow: '3px 3px 0px #1A1A1A' }}>
+                            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-[concentric-pulse_3s_ease-out_infinite]" />
+                            <div className="absolute inset-4 rounded-full border-2 border-primary/30 animate-[concentric-pulse_3s_ease-out_0.5s_infinite]" />
+                            <div className="absolute inset-8 rounded-full border-2 border-primary/40 animate-[concentric-pulse_3s_ease-out_1s_infinite]" />
+                            <div className="absolute inset-12 rounded-full bg-primary/10 animate-pulse-soft flex items-center justify-center">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-moss-light flex items-center justify-center">
                                     <span className="text-3xl">🏃</span>
                                 </div>
                             </div>
@@ -152,7 +259,7 @@ export default function OnboardingPage() {
                         </div>
 
                         <div className="w-48 h-1.5 mx-auto rounded-full bg-muted overflow-hidden">
-                            <div className="h-full w-1/2 rounded-full bg-forest animate-[shimmer_1.5s_ease-in-out_infinite]" />
+                            <div className="h-full w-1/2 rounded-full gradient-accent animate-[shimmer_1.5s_ease-in-out_infinite]" />
                         </div>
 
                         <p className="text-sm text-muted-foreground">
@@ -164,8 +271,8 @@ export default function OnboardingPage() {
         )
     }
 
-    // Program preview phase
-    if (phase === 'program' && generatedProgram) {
+    // Preview phase
+    if (phase === 'preview' && generatedProgram) {
         return (
             <div className="min-h-screen bg-background flex flex-col">
                 <header className="p-4 sm:p-6">
@@ -190,7 +297,6 @@ export default function OnboardingPage() {
 
     // Signup phase
     if (phase === 'signup' && generatedProgram) {
-        const data = buildOnboardingData()
         return (
             <div className="min-h-screen bg-background flex flex-col">
                 <header className="p-4 sm:p-6">
@@ -202,7 +308,7 @@ export default function OnboardingPage() {
                 <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
                     <InlineSignup
                         programData={generatedProgram}
-                        onboardingData={data}
+                        onboardingData={formData}
                     />
                 </main>
 
@@ -213,26 +319,41 @@ export default function OnboardingPage() {
         )
     }
 
-    // Main onboarding flow
+    // Quiz phase (default)
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className={`min-h-screen bg-gradient-to-br ${stepColors[step]} transition-colors duration-700 flex flex-col`}>
             {/* Header */}
             <header className="p-4 sm:p-6 flex items-center justify-between relative z-10">
-                <Link href="/">
+                <Link href="/" className="font-serif text-xl text-foreground">
                     <img src="/logo-full.svg" alt="Joggeur" className="h-10 w-auto" />
                 </Link>
-                <div className="flex items-center gap-2">
-                    <div className={`h-2 w-8 rounded-full transition-colors ${phase === 'step1' || phase === 'step2' ? 'bg-forest' : 'bg-muted'}`} />
-                    <div className={`h-2 w-8 rounded-full transition-colors ${phase === 'step2' ? 'bg-forest' : 'bg-muted'}`} />
-                </div>
+                <span className="text-sm text-muted-foreground font-medium">
+                    {step + 1} / {questions.length}
+                </span>
             </header>
 
+            {/* Progress bar */}
+            <div className="px-4 sm:px-6 relative z-10">
+                <div className="h-1 bg-muted rounded-full overflow-hidden max-w-lg mx-auto">
+                    <div
+                        className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            </div>
+
             {/* Main Content */}
-            <main className="flex-1 p-4 sm:p-6 pb-12">
-                <div className="max-w-2xl mx-auto">
+            <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
+                <div className={`w-full max-w-lg transition-all duration-200 ${isAnimating
+                    ? animDir === 'next'
+                        ? 'opacity-0 translate-x-8'
+                        : 'opacity-0 -translate-x-8'
+                    : 'opacity-100 translate-x-0'
+                    }`}>
+
                     {/* Generation error */}
                     {generationError && (
-                        <div className="mb-6 p-4 card-brutal flex items-start gap-3 border-destructive">
+                        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
                             <div>
                                 <p className="text-sm text-destructive font-medium">{generationError}</p>
@@ -247,236 +368,307 @@ export default function OnboardingPage() {
                         </div>
                     )}
 
-                    {/* STEP 1: 6 questions on one scrollable page */}
-                    {phase === 'step1' && (
-                        <div className="space-y-10 animate-fade-in">
-                            <div>
-                                <h1 className="font-serif text-3xl sm:text-4xl mb-2">Parle-nous de toi</h1>
-                                <p className="text-slate">6 questions rapides pour g&eacute;n&eacute;rer ton programme.</p>
-                            </div>
+                    {/* Question header */}
+                    <div className="text-center mb-10 space-y-3">
+                        <h1 className="font-serif text-3xl sm:text-4xl text-foreground leading-snug">
+                            {questions[step].title}
+                        </h1>
+                        <p className="text-muted-foreground text-lg">
+                            {questions[step].subtitle}
+                        </p>
+                    </div>
 
-                            {/* Q1: Level */}
+                    {/* Form */}
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        {/* Step 1: Level */}
+                        {step === 0 && (
                             <div className="space-y-3">
-                                <Label className="text-base font-bold">1. Quel est ton niveau ?</Label>
-                                <div className="grid gap-3">
-                                    {levels.map((l) => (
-                                        <button
-                                            key={l.value}
-                                            type="button"
-                                            onClick={() => setLevel(l.value)}
-                                            className={`card-brutal p-4 text-left transition-all ${level === l.value ? 'border-forest bg-forest/5 !shadow-[4px_4px_0px_#2D5016]' : ''}`}
-                                        >
-                                            <p className="font-bold">{l.label}</p>
-                                            <p className="text-sm text-slate">{l.desc}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Q2: Goal */}
-                            <div className="space-y-3">
-                                <Label className="text-base font-bold">2. Quel est ton objectif ?</Label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {goals.map((g) => (
-                                        <button
-                                            key={g.value}
-                                            type="button"
-                                            onClick={() => setGoalType(g.value)}
-                                            className={`card-brutal p-4 text-left transition-all ${goalType === g.value ? 'border-forest bg-forest/5 !shadow-[4px_4px_0px_#2D5016]' : ''}`}
-                                        >
-                                            <span className="text-2xl">{g.emoji}</span>
-                                            <p className="font-bold mt-1">{g.label}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Q3: Sessions per week */}
-                            <div className="space-y-3">
-                                <Label className="text-base font-bold">3. Combien de s&eacute;ances par semaine ?</Label>
-                                <div className="flex gap-3">
-                                    {sessionsOptions.map((n) => (
-                                        <button
-                                            key={n}
-                                            type="button"
-                                            onClick={() => setSessionsPerWeek(n)}
-                                            className={`card-brutal w-14 h-14 flex items-center justify-center text-lg font-bold transition-all ${sessionsPerWeek === n ? 'border-forest bg-forest text-white !shadow-[4px_4px_0px_#1A3009]' : ''}`}
-                                        >
-                                            {n}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Q4: Target date */}
-                            <div className="space-y-3">
-                                <Label className="text-base font-bold">4. Tu vises une date de course ?</Label>
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setHasTargetDate(true)}
-                                        className={`card-brutal px-6 py-3 font-bold transition-all ${hasTargetDate ? 'border-forest bg-forest/5 !shadow-[4px_4px_0px_#2D5016]' : ''}`}
+                                {[
+                                    { value: 'débutant', label: 'Débutant', desc: 'Je commence ou < 6 mois', icon: '🌱' },
+                                    { value: 'intermédiaire', label: 'Intermédiaire', desc: 'Je cours depuis 6-24 mois', icon: '🏃' },
+                                    { value: 'avancé', label: 'Avancé', desc: '2+ ans, plusieurs courses', icon: '🏆' },
+                                ].map((option) => (
+                                    <label
+                                        key={option.value}
+                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${formData.level === option.value
+                                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                                            : 'border-border/50 bg-card hover:border-primary/30 hover:shadow-sm'
+                                            }`}
                                     >
-                                        Oui
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setHasTargetDate(false); setTargetDate('') }}
-                                        className={`card-brutal px-6 py-3 font-bold transition-all ${!hasTargetDate ? 'border-forest bg-forest/5 !shadow-[4px_4px_0px_#2D5016]' : ''}`}
+                                        <input type="radio" value={option.value} {...register('level')} className="sr-only" />
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl flex-shrink-0">
+                                            {option.icon}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold">{option.label}</p>
+                                            <p className="text-sm text-muted-foreground">{option.desc}</p>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.level === option.value ? 'border-primary bg-primary' : 'border-muted'}`}>
+                                            {formData.level === option.value && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                    </label>
+                                ))}
+                                {errors.level && <p className="text-sm text-destructive text-center">{errors.level.message}</p>}
+                            </div>
+                        )}
+
+                        {/* Step 2: Goal */}
+                        {step === 1 && (
+                            <div className="space-y-3">
+                                {[
+                                    { value: '5k', label: 'Finir mon premier 5K', icon: '🎯' },
+                                    { value: '10k', label: 'Finir mon premier 10K', icon: '🏅' },
+                                    { value: 'semi', label: 'Semi-marathon (21K)', icon: '🔥' },
+                                    { value: 'marathon', label: 'Marathon (42K)', icon: '🏆' },
+                                    { value: 'improve', label: 'Améliorer mon temps', icon: '⚡' },
+                                ].map((option) => (
+                                    <label
+                                        key={option.value}
+                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${formData.goalType === option.value
+                                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                                            : 'border-border/50 bg-card hover:border-primary/30 hover:shadow-sm'
+                                            }`}
                                     >
-                                        Non
-                                    </button>
-                                </div>
-                                {hasTargetDate && (
-                                    <Input
-                                        type="date"
-                                        value={targetDate}
-                                        onChange={(e) => setTargetDate(e.target.value)}
-                                        className="max-w-xs border-2 border-foreground/20 rounded-lg"
-                                        min={new Date().toISOString().split('T')[0]}
-                                    />
+                                        <input
+                                            type="radio"
+                                            value={option.value}
+                                            checked={formData.goalType === option.value}
+                                            onChange={(e) => {
+                                                setValue('goalType', e.target.value as OnboardingData['goalType'])
+                                                const goalText = option.value === 'improve' ? 'Améliorer mon temps de course' : option.label
+                                                setValue('goal', goalText)
+                                            }}
+                                            className="sr-only"
+                                        />
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl flex-shrink-0">
+                                            {option.icon}
+                                        </div>
+                                        <p className="font-semibold flex-1">{option.label}</p>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.goalType === option.value ? 'border-primary bg-primary' : 'border-muted'}`}>
+                                            {formData.goalType === option.value && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                    </label>
+                                ))}
+                                {formData.goalType === 'improve' && (
+                                    <div className="pt-2">
+                                        <Label htmlFor="improveDistance" className="text-sm">Sur quelle distance ?</Label>
+                                        <Input
+                                            id="improveDistance"
+                                            placeholder="Ex: 10K en moins de 50 min"
+                                            className="mt-2 rounded-xl"
+                                            onChange={(e) => setValue('goal', `Améliorer mon temps sur ${e.target.value}`)}
+                                        />
+                                    </div>
+                                )}
+                                {errors.goal && <p className="text-sm text-destructive text-center mt-2">{errors.goal.message}</p>}
+                            </div>
+                        )}
+
+                        {/* Step 3: Race */}
+                        {step === 2 && (
+                            <div className="space-y-4">
+                                {wantsRace === null && (
+                                    <div className="space-y-3">
+                                        <label
+                                            className="flex items-center gap-4 p-5 rounded-2xl border-2 border-border/50 bg-card cursor-pointer hover:border-primary/30 hover:shadow-sm transition-all"
+                                            onClick={() => setWantsRace(true)}
+                                        >
+                                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">🏁</div>
+                                            <div className="flex-1">
+                                                <p className="font-semibold">Oui, je prépare une course</p>
+                                                <p className="text-sm text-muted-foreground">Programme adapté au terrain et à la date</p>
+                                            </div>
+                                        </label>
+                                        <label
+                                            className="flex items-center gap-4 p-5 rounded-2xl border-2 border-border/50 bg-card cursor-pointer hover:border-primary/30 hover:shadow-sm transition-all"
+                                            onClick={() => {
+                                                setWantsRace(false)
+                                                handleRaceClear()
+                                            }}
+                                        >
+                                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">🎯</div>
+                                            <div className="flex-1">
+                                                <p className="font-semibold">Non, objectif général</p>
+                                                <p className="text-sm text-muted-foreground">Programme classique selon ton objectif</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                )}
+                                {wantsRace === true && (
+                                    <div className="space-y-3">
+                                        <RaceAutocomplete onSelect={handleRaceSelect} onClear={handleRaceClear} selectedRace={selectedRace} />
+                                        <button type="button" onClick={() => { setWantsRace(null); handleRaceClear() }} className="text-sm text-muted-foreground hover:text-foreground underline">
+                                            Retour au choix
+                                        </button>
+                                    </div>
+                                )}
+                                {wantsRace === false && (
+                                    <div className="p-5 rounded-2xl bg-card border border-border/50 text-center">
+                                        <p className="text-muted-foreground">Pas de course sélectionnée</p>
+                                        <button type="button" onClick={() => setWantsRace(null)} className="text-sm text-primary hover:underline mt-2">
+                                            Changer
+                                        </button>
+                                    </div>
                                 )}
                             </div>
+                        )}
 
-                            {/* Q5: Reference time */}
-                            <div className="space-y-3">
-                                <Label className="text-base font-bold">5. Un temps de r&eacute;f&eacute;rence r&eacute;cent ?</Label>
-                                <p className="text-sm text-slate">Ex: &laquo;&nbsp;48min au 10K&nbsp;&raquo; ou &laquo;&nbsp;1h55 au semi&nbsp;&raquo;</p>
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setHasReferenceTime(true)}
-                                        className={`card-brutal px-6 py-3 font-bold transition-all ${hasReferenceTime ? 'border-forest bg-forest/5 !shadow-[4px_4px_0px_#2D5016]' : ''}`}
-                                    >
-                                        Oui
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setHasReferenceTime(false); setReferenceTime('') }}
-                                        className={`card-brutal px-6 py-3 font-bold transition-all ${!hasReferenceTime ? 'border-forest bg-forest/5 !shadow-[4px_4px_0px_#2D5016]' : ''}`}
-                                    >
-                                        Non
-                                    </button>
-                                </div>
-                                {hasReferenceTime && (
-                                    <Input
-                                        type="text"
-                                        value={referenceTime}
-                                        onChange={(e) => setReferenceTime(e.target.value)}
-                                        placeholder="Ex: 48min au 10K"
-                                        className="max-w-xs border-2 border-foreground/20 rounded-lg"
-                                    />
+                        {/* Step 4: Target Date */}
+                        {step === 3 && (
+                            <div className="space-y-4">
+                                {selectedRace ? (
+                                    <div className="p-5 rounded-2xl bg-primary/5 border border-primary/20">
+                                        <p className="text-sm text-muted-foreground mb-1">Date calée sur ta course</p>
+                                        <p className="font-semibold">{selectedRace.name} - {new Date(selectedRace.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="targetDate">Date de l&apos;objectif</Label>
+                                            <Input
+                                                id="targetDate"
+                                                type="date"
+                                                disabled={!formData.hasTargetDate}
+                                                {...register('targetDate')}
+                                                min={new Date().toISOString().split('T')[0]}
+                                                className="rounded-xl"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox
+                                                id="noDate"
+                                                checked={!formData.hasTargetDate}
+                                                onCheckedChange={(checked) => {
+                                                    setValue('hasTargetDate', !checked)
+                                                    if (checked) setValue('targetDate', undefined)
+                                                }}
+                                            />
+                                            <label htmlFor="noDate" className="text-sm cursor-pointer">
+                                                Je n&apos;ai pas de date précise
+                                            </label>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground bg-card p-4 rounded-2xl border border-border/50">
+                                            On recommande 12-16 semaines pour un objectif ambitieux. Sans date, on génère un programme de 12 semaines.
+                                        </p>
+                                    </>
                                 )}
                             </div>
+                        )}
 
-                            {/* Q6: Preferred days (informational, not stored) */}
+                        {/* Step 5: Sessions per week */}
+                        {step === 4 && (
                             <div className="space-y-3">
-                                <Label className="text-base font-bold">6. Jours pr&eacute;f&eacute;r&eacute;s pour courir ?</Label>
-                                <p className="text-sm text-slate">Le programme s&apos;adaptera automatiquement &agrave; ta dispo.</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
-                                        <span key={day} className="card-brutal px-4 py-2 text-sm font-medium cursor-default">
-                                            {day}
-                                        </span>
-                                    ))}
+                                {[
+                                    { value: 2, label: '2-3 séances/semaine', desc: 'Sécurité maximale — idéal pour débutants ou reprise', icon: '🌱' },
+                                    { value: 4, label: '4 séances/semaine', desc: 'Bon équilibre effort/récup — le sweet spot', icon: '💪' },
+                                    { value: 5, label: '5+ séances/semaine', desc: 'Risque blessure accru — réservé aux confirmés', icon: '🔥' },
+                                ].map((option) => (
+                                    <label
+                                        key={option.value}
+                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${formData.sessionsPerWeek === option.value
+                                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
+                                            : 'border-border/50 bg-card hover:border-primary/30 hover:shadow-sm'
+                                            }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            value={option.value}
+                                            checked={formData.sessionsPerWeek === option.value}
+                                            onChange={() => setValue('sessionsPerWeek', option.value)}
+                                            className="sr-only"
+                                        />
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl flex-shrink-0">
+                                            {option.icon}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold">{option.label}</p>
+                                            <p className="text-sm text-muted-foreground">{option.desc}</p>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${formData.sessionsPerWeek === option.value ? 'border-primary bg-primary' : 'border-muted'}`}>
+                                            {formData.sessionsPerWeek === option.value && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Step 6: Reference Time */}
+                        {step === 5 && (
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="referenceTime">Ton temps de référence (optionnel)</Label>
+                                    <Textarea
+                                        id="referenceTime"
+                                        placeholder="Ex: J'ai fait un 10K en 55 minutes il y a 2 mois"
+                                        disabled={!formData.hasReferenceTime}
+                                        {...register('referenceTime')}
+                                        rows={3}
+                                        maxLength={100}
+                                        className="rounded-xl"
+                                    />
+                                    <p className="text-xs text-muted-foreground text-right">{formData.referenceTime?.length || 0}/100</p>
                                 </div>
-                            </div>
-
-                            {/* Continue button */}
-                            <div className="pt-4">
-                                <Button
-                                    onClick={() => setPhase('step2')}
-                                    disabled={!canProceedStep1}
-                                    className="w-full sm:w-auto rounded-lg bg-forest text-white font-semibold px-8 py-6 hover:bg-forest-dim transition-all border-2 border-forest disabled:opacity-50"
-                                    size="lg"
-                                    style={{ boxShadow: canProceedStep1 ? '4px 4px 0px #1A1A1A' : 'none' }}
-                                >
-                                    Continuer
-                                    <ArrowRight className="ml-2 w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 2: Precautions + Generate */}
-                    {phase === 'step2' && (
-                        <div className="space-y-10 animate-fade-in">
-                            <div>
-                                <button
-                                    type="button"
-                                    onClick={() => setPhase('step1')}
-                                    className="flex items-center gap-2 text-sm text-slate hover:text-foreground mb-4 transition-colors"
-                                >
-                                    <ArrowLeft className="w-4 h-4" />
-                                    Retour
-                                </button>
-                                <h1 className="font-serif text-3xl sm:text-4xl mb-2">Pr&eacute;cautions</h1>
-                                <p className="text-slate">Derni&egrave;re &eacute;tape avant la g&eacute;n&eacute;ration de ton programme.</p>
-                            </div>
-
-                            {/* Injuries / Notes */}
-                            <div className="space-y-3">
-                                <Label className="text-base font-bold">Blessures ou pr&eacute;cautions particuli&egrave;res ?</Label>
-                                <p className="text-sm text-slate">
-                                    Tendinite, douleur au genou, reprise apr&egrave;s arr&ecirc;t... Tout ce que le programme doit prendre en compte.
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        id="noReference"
+                                        checked={!formData.hasReferenceTime}
+                                        onCheckedChange={(checked) => {
+                                            setValue('hasReferenceTime', !checked)
+                                            if (checked) setValue('referenceTime', undefined)
+                                        }}
+                                    />
+                                    <label htmlFor="noReference" className="text-sm cursor-pointer">
+                                        Je n&apos;ai pas de temps de référence
+                                    </label>
+                                </div>
+                                <p className="text-sm text-muted-foreground bg-card p-4 rounded-2xl border border-border/50">
+                                    Un temps récent (&lt; 3 mois) aide l&apos;IA à calculer tes allures optimales.
                                 </p>
-                                <textarea
-                                    value={injuriesNotes}
-                                    onChange={(e) => setInjuriesNotes(e.target.value)}
-                                    placeholder="Ex: Tendinite d'Achille il y a 3 mois, je reprends doucement..."
-                                    className="w-full min-h-[120px] p-4 border-2 border-foreground/20 rounded-lg bg-card text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:border-forest transition-colors"
-                                    maxLength={500}
-                                />
-                                <p className="text-xs text-grey text-right">{injuriesNotes.length}/500</p>
                             </div>
+                        )}
 
-                            {/* Summary */}
-                            <div className="card-brutal p-6 space-y-3">
-                                <h3 className="font-bold">R&eacute;capitulatif</h3>
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <p className="text-slate">Niveau</p>
-                                        <p className="font-bold capitalize">{level}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-slate">Objectif</p>
-                                        <p className="font-bold">{goals.find(g => g.value === goalType)?.label}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-slate">S&eacute;ances/semaine</p>
-                                        <p className="font-bold">{sessionsPerWeek}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-slate">Date cible</p>
-                                        <p className="font-bold">{hasTargetDate && targetDate ? new Date(targetDate).toLocaleDateString('fr-FR') : 'Pas de date'}</p>
-                                    </div>
-                                    {hasReferenceTime && referenceTime && (
-                                        <div className="col-span-2">
-                                            <p className="text-slate">Temps de r&eacute;f&eacute;rence</p>
-                                            <p className="font-bold">{referenceTime}</p>
-                                        </div>
-                                    )}
-                                    {injuriesNotes && (
-                                        <div className="col-span-2">
-                                            <p className="text-slate">Pr&eacute;cautions</p>
-                                            <p className="font-bold">{injuriesNotes}</p>
-                                        </div>
-                                    )}
+                        {/* Step 7: Injuries */}
+                        {step === 6 && (
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="injuries">Blessures ou précautions (optionnel)</Label>
+                                    <Textarea
+                                        id="injuries"
+                                        placeholder="Ex: Douleur genou droit après 10km, tendinite achille il y a 6 mois..."
+                                        {...register('injuriesNotes')}
+                                        rows={4}
+                                        maxLength={500}
+                                        className="rounded-xl"
+                                    />
+                                    <p className="text-xs text-muted-foreground text-right">{formData.injuriesNotes?.length || 0}/500</p>
+                                </div>
+                                <div className="bg-accent-warm/10 border border-accent-warm/30 rounded-2xl p-4 text-sm text-foreground/80">
+                                    <strong>Ces infos sont critiques</strong> — on ajuste vraiment ton programme en fonction. Consulte un médecin si tu as des blessures sérieuses.
                                 </div>
                             </div>
+                        )}
 
-                            {/* Generate button */}
-                            <Button
-                                onClick={generateProgram}
-                                className="w-full rounded-lg bg-forest text-white font-semibold px-8 py-6 hover:bg-forest-dim transition-all border-2 border-forest text-lg"
-                                size="lg"
-                                style={{ boxShadow: '4px 4px 0px #1A1A1A' }}
-                            >
-                                G&eacute;n&eacute;rer mon programme
-                                <ArrowRight className="ml-2 w-5 h-5" />
-                            </Button>
+                        {/* Navigation */}
+                        <div className="flex gap-3 mt-10">
+                            {step > 0 && (
+                                <Button type="button" variant="outline" onClick={goBack} className="flex-1 rounded-2xl py-6 border-border/50">
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Retour
+                                </Button>
+                            )}
+                            {step < questions.length - 1 ? (
+                                <Button type="button" onClick={goNext} className="flex-1 rounded-2xl py-6 bg-primary text-primary-foreground">
+                                    Suivant
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            ) : (
+                                <Button type="submit" className="flex-1 rounded-2xl py-6 bg-primary text-primary-foreground shadow-lg shadow-primary/25">
+                                    <Zap className="w-4 h-4 mr-2" />
+                                    Générer Mon Programme
+                                </Button>
+                            )}
                         </div>
-                    )}
+                    </form>
                 </div>
             </main>
 

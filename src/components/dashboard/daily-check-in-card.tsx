@@ -13,7 +13,7 @@ interface DailyCheckInCardProps {
 }
 
 const feelings = [
-    { value: 1, label: 'En forme', icon: '💪', bg: 'bg-forest/10 hover:bg-forest/20 border-forest/30', activeBg: 'bg-forest/20 border-forest/50' },
+    { value: 1, label: 'En forme', icon: '💪', bg: 'bg-success/10 hover:bg-success/20 border-success/30', activeBg: 'bg-success/20 border-success/50' },
     { value: 2, label: 'Fatigué', icon: '😴', bg: 'bg-warning/10 hover:bg-warning/20 border-warning/30', activeBg: 'bg-warning/20 border-warning/50' },
     { value: 3, label: 'Très fatigué', icon: '🤕', bg: 'bg-destructive/10 hover:bg-destructive/20 border-destructive/30', activeBg: 'bg-destructive/20 border-destructive/50' },
 ]
@@ -55,13 +55,13 @@ export default function DailyCheckInCard({
 
     if (done && !result) {
         return (
-            <Card className="border-forest/20 bg-forest/5">
+            <Card className="border-success/20 bg-success/5">
                 <CardContent className="pt-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-forest/10 flex items-center justify-center">
-                            <Heart className="w-5 h-5 text-forest" />
+                        <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                            <Heart className="w-5 h-5 text-success" />
                         </div>
-                        <p className="font-medium text-forest">Check-in du jour effectué !</p>
+                        <p className="font-medium text-success">Check-in du jour effectué !</p>
                     </div>
                 </CardContent>
             </Card>
@@ -78,12 +78,12 @@ export default function DailyCheckInCard({
                     ? 'border-destructive/20 bg-destructive/5'
                     : isAdjusted
                         ? 'border-warning/20 bg-warning/5'
-                        : 'border-forest/20 bg-forest/5'
+                        : 'border-success/20 bg-success/5'
             }`}>
                 <CardContent className="pt-6">
                     <div className="flex items-start gap-3">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            isRest ? 'bg-destructive/10' : isAdjusted ? 'bg-warning/10' : 'bg-forest/10'
+                            isRest ? 'bg-destructive/10' : isAdjusted ? 'bg-warning/10' : 'bg-success/10'
                         }`}>
                             <span className="text-lg">{isRest ? '🛑' : isAdjusted ? '⚠️' : '✅'}</span>
                         </div>
