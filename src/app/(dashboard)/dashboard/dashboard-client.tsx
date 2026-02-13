@@ -188,7 +188,7 @@ export default function DashboardClient({
             <div className="p-6 lg:p-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center py-20 space-y-6">
-                        <div className="w-20 h-20 bg-terracotta/10 rounded-3xl flex items-center justify-center mx-auto">
+                        <div className="w-20 h-20 bg-forest/10 rounded-xl flex items-center justify-center mx-auto border-2 border-forest/20">
                             <span className="text-4xl">🏃</span>
                         </div>
                         <div className="space-y-2">
@@ -198,7 +198,7 @@ export default function DashboardClient({
                             </p>
                         </div>
                         <Link href="/onboarding">
-                            <Button size="lg" className="rounded-lg bg-terracotta text-white font-semibold px-8 py-6 hover:bg-terracotta-dark transition-colors" style={{ boxShadow: '6px 6px 0px rgba(232, 119, 34, 0.3)' }}>
+                            <Button size="lg" className="rounded-lg bg-forest text-white font-semibold px-8 py-6 hover:bg-forest-dim transition-all border-2 border-forest" style={{ boxShadow: '4px 4px 0px #1A1A1A' }}>
                                 Créer Mon Programme
                                 <ArrowRight className="ml-2 w-4 h-4" />
                             </Button>
@@ -213,7 +213,7 @@ export default function DashboardClient({
         <div className="min-h-screen bg-background">
             {/* STICKY TOP - Check-in quotidien */}
             {nextSession && !hasCheckedInToday && (
-                <div className="sticky top-0 z-[100] bg-background/90 backdrop-blur-xl border-b-2 border-black/10 p-4" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                <div className="sticky top-0 z-[100] bg-background/90 backdrop-blur-xl border-b-2 border-foreground/10 p-4" style={{ boxShadow: '0 4px 0px rgba(26, 26, 26, 0.05)' }}>
                     <div className="container max-w-4xl mx-auto">
                         <p className="text-sm font-medium mb-2">
                             Aujourd&apos;hui &bull; {getDayName()}
@@ -238,9 +238,9 @@ export default function DashboardClient({
             {/* Welcome Banner */}
             {showWelcome && (
                 <div className="container max-w-4xl mx-auto px-4 pt-6">
-                    <div className="bg-gradient-to-br from-terracotta to-terracotta-dark rounded-3xl p-6 text-white animate-fade-in-up">
+                    <div className="bg-forest rounded-lg p-6 text-white animate-fade-in-up border-2 border-forest-dim" style={{ boxShadow: '4px 4px 0px #1A1A1A' }}>
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm">
+                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">
                                 🎉
                             </div>
                             <div>
@@ -266,10 +266,10 @@ export default function DashboardClient({
 
                 {/* Adjustment banner */}
                 {todayAdjustment?.adjustment_made && (
-                    <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 ${
+                    <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 border-2 ${
                         todayAdjustment.adjustment_made.intensity_reduction === 100
-                            ? 'bg-destructive/10 text-destructive border border-destructive/20'
-                            : 'bg-warning/10 text-warning border border-warning/20'
+                            ? 'bg-destructive/10 text-destructive border-destructive/20'
+                            : 'bg-warning/10 text-warning border-warning/20'
                     }`}>
                         <span>{todayAdjustment.adjustment_made.intensity_reduction === 100 ? '🛑' : '⚠️'}</span>
                         {todayAdjustment.adjustment_made.intensity_reduction === 100
@@ -279,20 +279,20 @@ export default function DashboardClient({
                     </div>
                 )}
                 {todayAdjustment && !todayAdjustment.adjustment_made && todayAdjustment.feeling === 1 && (
-                    <div className="px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 bg-terracotta/10 text-terracotta border border-terracotta/20">
+                    <div className="px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 bg-forest/10 text-forest border-2 border-forest/20">
                         <span>💪</span> En pleine forme !
                     </div>
                 )}
 
                 {/* Week progress */}
-                <div className="bg-white rounded-lg p-6" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                <div className="card-brutal p-6">
                     <div className="flex justify-between items-center mb-2">
-                        <p className="font-medium">📅 Semaine {currentWeek}/{program.program_data.program_summary.total_weeks}</p>
+                        <p className="font-bold">Semaine {currentWeek}/{program.program_data.program_summary.total_weeks}</p>
                         <p className="text-sm text-grey">{weekCompletedSessions}/{weekTotalSessions} séances</p>
                     </div>
                     <div className="w-full bg-grey/20 rounded-full h-3">
                         <div
-                            className="bg-terracotta h-3 rounded-full transition-all"
+                            className="bg-forest h-3 rounded-full transition-all"
                             style={{ width: `${weekProgressPercent}%` }}
                         />
                     </div>
@@ -300,13 +300,13 @@ export default function DashboardClient({
 
                 {/* Race Countdown */}
                 {race && (
-                    <div className="bg-gradient-to-br from-orange-100 to-amber-50 rounded-lg p-6 border-2 border-black/10" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
-                        <p className="text-sm font-medium mb-1">🎯 Objectif course</p>
+                    <div className="card-brutal p-6 bg-forest/5">
+                        <p className="text-sm font-bold mb-1">Objectif course</p>
                         <h3 className="text-2xl font-bold mb-2">{race.name}</h3>
                         <p className="text-grey mb-2">
                             {race.distance_km}km &bull; {new Date(race.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
-                        <p className="text-3xl font-bold font-serif text-terracotta">
+                        <p className="text-3xl font-bold font-serif text-forest">
                             J-{Math.max(0, Math.ceil((new Date(race.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))}
                         </p>
                     </div>
@@ -314,19 +314,19 @@ export default function DashboardClient({
 
                 {/* Stats grid 2x2 */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg p-4" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                    <div className="card-brutal p-4">
                         <p className="text-sm text-grey mb-1">Streak</p>
                         <p className="text-3xl font-bold">🔥 {streak}</p>
                     </div>
-                    <div className="bg-white rounded-lg p-4" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                    <div className="card-brutal p-4">
                         <p className="text-sm text-grey mb-1">Séances</p>
                         <p className="text-3xl font-bold">⚡ {completedSessions}/{totalSessions}</p>
                     </div>
-                    <div className="bg-white rounded-lg p-4" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                    <div className="card-brutal p-4">
                         <p className="text-sm text-grey mb-1">Cette semaine</p>
                         <p className="text-3xl font-bold">📊 {currentWeekData?.total_volume_km || 0} km</p>
                     </div>
-                    <div className="bg-white rounded-lg p-4" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                    <div className="card-brutal p-4">
                         <p className="text-sm text-grey mb-1">Risque</p>
                         <p className="text-3xl font-bold">
                             {riskLevel === 'low' && '✅'}
@@ -338,7 +338,7 @@ export default function DashboardClient({
                 </div>
 
                 {/* Calendar week */}
-                <div className="bg-white rounded-lg p-6" style={{ boxShadow: '4px 4px 0px rgba(26, 26, 26, 0.1)' }}>
+                <div className="card-brutal p-6">
                     <h3 className="font-bold mb-4">Calendrier semaine</h3>
                     <div className="flex justify-between">
                         {dayOrder.map((dayName) => {
@@ -350,10 +350,10 @@ export default function DashboardClient({
                             return (
                                 <div key={dayName} className="flex flex-col items-center gap-2">
                                     <p className="text-xs text-grey">{dayName.slice(0, 3)}</p>
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all border-2 ${
                                         isCompleted
-                                            ? 'bg-terracotta text-white'
-                                            : 'bg-grey/20'
+                                            ? 'bg-forest text-white border-forest-dim'
+                                            : 'bg-grey/10 border-grey/20'
                                     }`}>
                                         {isCompleted ? '✓' : '○'}
                                     </div>
@@ -373,51 +373,48 @@ export default function DashboardClient({
 
                 {/* Today's Session Card (if check-in done) */}
                 {nextSession && hasCheckedInToday && (
-                    <Card className="border-terracotta/20 bg-gradient-to-br from-terracotta/5 to-orange-50 overflow-hidden">
-                        <CardContent className="pt-6">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-3">
-                                    <p className="text-sm font-medium text-terracotta">
-                                        {nextSession.isNextWeek ? `Semaine prochaine - ${nextSession.day}` : `Aujourd'hui - ${nextSession.day}`}
-                                    </p>
-                                    <h3 className="font-serif text-2xl">{nextSession.session_type}</h3>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                        {nextSession.duration_min && (
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {nextSession.duration_min} min
-                                            </span>
-                                        )}
-                                        {nextSession.distance_km && (
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="w-4 h-4" />
-                                                {nextSession.distance_km} km
-                                            </span>
-                                        )}
-                                    </div>
-                                    {nextSession.description && (
-                                        <p className="text-sm text-muted-foreground max-w-md">{nextSession.description}</p>
+                    <div className="card-brutal p-6 bg-forest/5 border-forest/30">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-3">
+                                <p className="text-sm font-bold text-forest">
+                                    {nextSession.isNextWeek ? `Semaine prochaine - ${nextSession.day}` : `Aujourd'hui - ${nextSession.day}`}
+                                </p>
+                                <h3 className="font-serif text-2xl">{nextSession.session_type}</h3>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    {nextSession.duration_min && (
+                                        <span className="flex items-center gap-1">
+                                            <Clock className="w-4 h-4" />
+                                            {nextSession.duration_min} min
+                                        </span>
+                                    )}
+                                    {nextSession.distance_km && (
+                                        <span className="flex items-center gap-1">
+                                            <MapPin className="w-4 h-4" />
+                                            {nextSession.distance_km} km
+                                        </span>
                                     )}
                                 </div>
-                                <Button
-                                    onClick={() => toggleSession(nextSession.weekNumber, nextSession.day, true)}
-                                    className="rounded-lg bg-terracotta text-white font-semibold px-6 hover:bg-terracotta-dark"
-                                    disabled={isSessionCompleted(nextSession.weekNumber, nextSession.day)}
-                                >
-                                    {isSessionCompleted(nextSession.weekNumber, nextSession.day) ? 'Fait !' : "C'est parti !"}
-                                </Button>
+                                {nextSession.description && (
+                                    <p className="text-sm text-muted-foreground max-w-md">{nextSession.description}</p>
+                                )}
                             </div>
-                        </CardContent>
-                    </Card>
+                            <Button
+                                onClick={() => toggleSession(nextSession.weekNumber, nextSession.day, true)}
+                                className="rounded-lg bg-forest text-white font-semibold px-6 hover:bg-forest-dim border-2 border-forest"
+                                disabled={isSessionCompleted(nextSession.weekNumber, nextSession.day)}
+                                style={{ boxShadow: '3px 3px 0px #1A1A1A' }}
+                            >
+                                {isSessionCompleted(nextSession.weekNumber, nextSession.day) ? 'Fait !' : "C'est parti !"}
+                            </Button>
+                        </div>
+                    </div>
                 )}
 
                 {!nextSession && (
-                    <Card className="border-terracotta/20 bg-terracotta/5">
-                        <CardContent className="pt-6 text-center">
-                            <p className="font-serif text-2xl">Programme terminé ! 🏆</p>
-                            <p className="text-muted-foreground mt-1">Bravo, tu as tout donné !</p>
-                        </CardContent>
-                    </Card>
+                    <div className="card-brutal p-6 bg-forest/5 border-forest/30 text-center">
+                        <p className="font-serif text-2xl">Programme terminé ! 🏆</p>
+                        <p className="text-muted-foreground mt-1">Bravo, tu as tout donné !</p>
+                    </div>
                 )}
 
                 {/* Injury Risk (detailed) */}
@@ -426,7 +423,7 @@ export default function DashboardClient({
                 {/* View Full Program */}
                 <div className="text-center">
                     <Link href="/program">
-                        <Button variant="outline" className="rounded-lg font-semibold border-border/50">
+                        <Button variant="outline" className="rounded-lg font-semibold border-2 border-foreground/20" style={{ boxShadow: '3px 3px 0px rgba(26, 26, 26, 0.1)' }}>
                             Voir le programme complet
                             <ArrowRight className="ml-2 w-4 h-4" />
                         </Button>
@@ -435,21 +432,19 @@ export default function DashboardClient({
 
                 {/* Tip */}
                 {program.program_data.tips && program.program_data.tips.length > 0 && (
-                    <Card className="bg-terracotta/5 border-terracotta/10">
-                        <CardContent className="pt-6">
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-terracotta/10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg">
-                                    💡
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-sm mb-1">Conseil du jour</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {program.program_data.tips[currentWeek % program.program_data.tips.length]}
-                                    </p>
-                                </div>
+                    <div className="card-brutal p-6 bg-forest/5">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-forest/10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg border-2 border-forest/20">
+                                💡
                             </div>
-                        </CardContent>
-                    </Card>
+                            <div>
+                                <p className="font-bold text-sm mb-1">Conseil du jour</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {program.program_data.tips[currentWeek % program.program_data.tips.length]}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

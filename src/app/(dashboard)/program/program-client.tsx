@@ -32,7 +32,7 @@ function getSessionColor(sessionType: string | undefined): string {
     if (type.includes('fractionné') || type.includes('interval')) return 'border-accent-warm/40 bg-accent-warm/5'
     if (type.includes('long') || type.includes('sortie')) return 'border-primary/40 bg-primary/5'
     if (type.includes('tempo') || type.includes('seuil')) return 'border-warning/40 bg-warning/5'
-    if (type.includes('récup') || type.includes('easy')) return 'border-terracotta/40 bg-terracotta/5'
+    if (type.includes('récup') || type.includes('easy')) return 'border-forest/40 bg-forest/5'
     return 'border-border/50'
 }
 
@@ -138,7 +138,7 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
                 </div>
 
                 {/* Global Progress */}
-                <Card className="bg-gradient-to-br from-terracotta/5 to-terracotta-light/20 border-terracotta/10">
+                <Card className="bg-gradient-to-br from-forest/5 to-forest-light/20 border-forest/10">
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium">Progression globale</span>
@@ -196,12 +196,12 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
                                     : isCurrent
                                         ? 'border-primary/30 bg-primary/5'
                                         : isComplete
-                                            ? 'border-terracotta/30 bg-terracotta/5'
+                                            ? 'border-forest/30 bg-forest/5'
                                             : 'border-border/50 bg-card'
                                     }`}
                             >
                                 <span className="font-medium">S{week.week_number}</span>
-                                {isComplete && !isSelected && <span className="ml-1 text-terracotta">✓</span>}
+                                {isComplete && !isSelected && <span className="ml-1 text-forest">✓</span>}
                             </button>
                         )
                     })}
@@ -243,7 +243,7 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
                                             className={`rounded-2xl border transition-all ${session.rest_day
                                                 ? 'bg-muted/20 border-border/30'
                                                 : isCompleted
-                                                    ? 'bg-terracotta/5 border-terracotta/20'
+                                                    ? 'bg-forest/5 border-forest/20'
                                                     : getSessionColor(session.session_type)
                                                 }`}
                                         >
@@ -278,7 +278,7 @@ export default function ProgramClient({ program, tracking: initialTracking, chec
                                                         </div>
                                                     )}
                                                 </div>
-                                                {isCompleted && <span className="text-terracotta text-sm font-medium">Fait ✓</span>}
+                                                {isCompleted && <span className="text-forest text-sm font-medium">Fait ✓</span>}
                                                 {!session.rest_day && <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />}
                                             </button>
 
