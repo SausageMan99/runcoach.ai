@@ -9,7 +9,7 @@ interface InjuryRiskWidgetProps {
 }
 
 const levelConfig = {
-    low: { label: 'Faible', color: 'text-terracotta', bg: 'bg-terracotta', border: 'border-terracotta/20', bgLight: 'bg-terracotta/5', badgeBg: 'bg-terracotta/10' },
+    low: { label: 'Faible', color: 'text-forest', bg: 'bg-forest', border: 'border-forest/20', bgLight: 'bg-forest/5', badgeBg: 'bg-forest/10' },
     medium: { label: 'Modéré', color: 'text-warning', bg: 'bg-warning', border: 'border-warning/20', bgLight: 'bg-warning/5', badgeBg: 'bg-warning/10' },
     high: { label: 'Élevé', color: 'text-destructive', bg: 'bg-destructive', border: 'border-destructive/20', bgLight: 'bg-destructive/5', badgeBg: 'bg-destructive/10' },
 }

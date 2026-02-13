@@ -98,7 +98,7 @@ export default function SignupForm() {
     if (success) {
         return (
             <div className="w-full max-w-md text-center space-y-6">
-                <div className="w-20 h-20 bg-terracotta/10 rounded-3xl flex items-center justify-center mx-auto">
+                <div className="w-20 h-20 bg-forest/10 rounded-3xl flex items-center justify-center mx-auto">
                     <span className="text-4xl">✉️</span>
                 </div>
                 <div className="space-y-2">

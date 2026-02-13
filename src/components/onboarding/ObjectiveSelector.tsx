@@ -37,8 +37,8 @@ export default function ObjectiveSelector({ selected, onSelect }: ObjectiveSelec
                         onClick={() => onSelect(obj.value)}
                         className={`p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 text-center space-y-2 ${
                             selected === obj.value
-                                ? 'border-terracotta bg-terracotta-light/30 shadow-md'
-                                : 'border-border/50 bg-card hover:border-terracotta/30 hover:shadow-sm'
+                                ? 'border-forest bg-forest-light/30 shadow-md'
+                                : 'border-border/50 bg-card hover:border-forest/30 hover:shadow-sm'
                         }`}
                         aria-pressed={selected === obj.value}
                     >

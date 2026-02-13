@@ -104,7 +104,7 @@ export default function GeneratePage() {
                                 <div className="absolute inset-4 rounded-full border-2 border-primary/30 animate-[concentric-pulse_3s_ease-out_0.5s_infinite]" />
                                 <div className="absolute inset-8 rounded-full border-2 border-primary/40 animate-[concentric-pulse_3s_ease-out_1s_infinite]" />
                                 <div className="absolute inset-12 rounded-full bg-primary/10 animate-pulse-soft flex items-center justify-center">
-                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-terracotta to-terracotta-dark flex items-center justify-center">
+                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-forest to-forest-dim flex items-center justify-center">
                                         <span className="text-3xl">🏃</span>
                                     </div>
                                 </div>
@@ -132,12 +132,12 @@ export default function GeneratePage() {
 
                     {status === 'success' && (
                         <div className="space-y-6 animate-scale-in">
-                            <div className="w-24 h-24 bg-terracotta/10 rounded-3xl flex items-center justify-center mx-auto">
-                                <CheckCircle className="w-12 h-12 text-terracotta" />
+                            <div className="w-24 h-24 bg-forest/10 rounded-3xl flex items-center justify-center mx-auto">
+                                <CheckCircle className="w-12 h-12 text-forest" />
                             </div>
 
                             <div className="space-y-2">
-                                <h2 className="font-serif text-3xl text-terracotta">
+                                <h2 className="font-serif text-3xl text-forest">
                                     Programme créé !
                                 </h2>
                                 <p className="text-muted-foreground">

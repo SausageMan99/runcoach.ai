@@ -50,7 +50,7 @@ export default function RefinementForm({ onSubmit }: RefinementFormProps) {
                         id="level"
                         value={level}
                         onChange={(e) => setLevel(e.target.value)}
-                        className="w-full rounded-xl border-2 border-border/50 bg-card px-4 py-3 text-sm focus:outline-none focus:border-terracotta transition-colors"
+                        className="w-full rounded-xl border-2 border-border/50 bg-card px-4 py-3 text-sm focus:outline-none focus:border-forest transition-colors"
                     >
                         <option value="débutant">D&eacute;butant (moins de 6 mois)</option>
                         <option value="intermédiaire">Interm&eacute;diaire (6-24 mois)</option>
@@ -65,7 +65,7 @@ export default function RefinementForm({ onSubmit }: RefinementFormProps) {
                         id="sessions"
                         value={sessionsPerWeek}
                         onChange={(e) => setSessionsPerWeek(Number(e.target.value))}
-                        className="w-full rounded-xl border-2 border-border/50 bg-card px-4 py-3 text-sm focus:outline-none focus:border-terracotta transition-colors"
+                        className="w-full rounded-xl border-2 border-border/50 bg-card px-4 py-3 text-sm focus:outline-none focus:border-forest transition-colors"
                     >
                         <option value={2}>2-3 s&eacute;ances/semaine</option>
                         <option value={4}>4 s&eacute;ances/semaine</option>
@@ -88,8 +88,8 @@ export default function RefinementForm({ onSubmit }: RefinementFormProps) {
 
                 <button
                     type="submit"
-                    className="w-full rounded-lg bg-terracotta text-white font-semibold py-4 px-6 hover:bg-terracotta-dark transition-colors"
-                    style={{ boxShadow: '6px 6px 0px rgba(232, 119, 34, 0.3)' }}
+                    className="w-full rounded-lg bg-forest text-white font-semibold py-4 px-6 hover:bg-forest-dim transition-colors"
+                    style={{ boxShadow: '4px 4px 0px #1A1A1A' }}
                 >
                     G&eacute;n&eacute;rer mon plan final
                 </button>
